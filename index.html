@@ -17549,9 +17549,16 @@ function sendEvaluatePoll() {
         if (sTracker.currentRun) {
           const cur = sTracker.currentRun;
           const sameGame = curGameId && cur.gameId ? (curGameId === cur.gameId) : (curProxy && curProxy.fieldTid === cur.stageId);
-          
-          if (sameGame) {
-            cur.duration = curElapsed > 0 ? curElapsed : ((nowTs - cur.startTime) / 1000);
+          const testDuration = curElapsed > 0 ? curElapsed : ((nowTs - cur.startTime) / 1000);
+
+          // DETECT BATTLE RESTART IN SAME STAGE REPEAT (AFK FARMING):
+          // If the fight has progressed (>= 8s) and curElapsed drops significantly, or if time reaches runaway limit (>= 130s):
+          const isElapsedReset = !!(sameGame && (cur.lastElapsed > 8.0 || cur.duration > 8.0) && curElapsed > 0 && (curElapsed < cur.lastElapsed - 5.0 || curElapsed < cur.duration - 5.0));
+          const isRunaway = (testDuration >= 130.0 || cur.duration >= 130.0);
+
+          if (sameGame && !isElapsedReset && !isRunaway) {
+            cur.duration = testDuration;
+            cur.lastElapsed = curElapsed;
             if (isHeroDead) cur.wasHeroDead = true;
             if (isClearSeqStarted || (curProxy && (curProxy._bStageClearSequenceStarted || curProxy._bStageClearSequenceActive || curProxy._isWin === true || curProxy._gameResult === 1 || curProxy._isClear === true))) cur.wasClearSeqStarted = true;
             if (curClearTid > cur.initialClearTid) cur.clearedNewStage = true;
@@ -17561,9 +17568,14 @@ function sendEvaluatePoll() {
           const isStageAdvanced = (activeStageTid > 0 && activeStageTid > cur.stageId);
           if (isStageAdvanced) cur.wasClearSeqStarted = true;
 
-          const battleEnded = (!sameGame && curGameId) || isGameEnd || isClearSeqStarted || cur.wasHeroDead || cur.wasDefeat || !curProxy || (activeStageTid !== cur.stageId && activeStageTid !== 0);
+          const battleEnded = (!sameGame && curGameId) || isGameEnd || isClearSeqStarted || cur.wasHeroDead || cur.wasDefeat || !curProxy || isElapsedReset || isRunaway || (activeStageTid !== cur.stageId && activeStageTid !== 0);
 
-          if (battleEnded && !cur.recorded && cur.duration >= 1) {
+          if (battleEnded && !cur.recorded && (cur.duration >= 1 || testDuration >= 1)) {
+            let finalDur = Math.max(cur.duration, testDuration);
+            if (isElapsedReset && cur.lastElapsed) finalDur = cur.lastElapsed;
+            if (isRunaway && finalDur > 130.0) finalDur = 120.0;
+            cur.duration = finalDur;
+
             const isShort = cur.duration < 6.0;
             const isCleared = !!(cur.wasClearSeqStarted || cur.clearedNewStage || isStageAdvanced || (curProxy && (curProxy._bStageClearSequenceStarted || curProxy._bStageClearSequenceActive || curProxy._isWin === true || curProxy._gameResult === 1 || curProxy._isClear === true)));
             const isExplicitDefeat = !!(cur.wasHeroDead || cur.wasDefeat || (curProxy && (curProxy._isDefeat === true || curProxy._gameResult === 2 || curProxy._bStageFailSequenceStarted === true)));
@@ -17574,6 +17586,10 @@ function sendEvaluatePoll() {
               runStatus = 'success';
             } else if (isExplicitDefeat) {
               runStatus = 'failed';
+            } else if (isRunaway) {
+              runStatus = 'failed';
+            } else if (isElapsedReset) {
+              runStatus = cur.wasDefeat ? 'failed' : 'success';
             } else if (!curProxy && !isExplicitDefeat) {
               runStatus = 'success';
             } else if (isGameEnd) {
@@ -17613,6 +17629,7 @@ function sendEvaluatePoll() {
               stageId: activeStageTid,
               startTime: nowTs,
               duration: curElapsed > 0 ? curElapsed : 0,
+              lastElapsed: curElapsed > 0 ? curElapsed : 0,
               wasHeroDead: false,
               wasClearSeqStarted: false,
               clearedNewStage: false,
@@ -17819,20 +17836,61 @@ function sendEvaluatePoll() {
       let autoReconnectResult = null;
       try {
         if (cfg && cfg.autoReconnectConfirm) {
-          const sysPopup = nn.ui && nn.ui.manager && nn.ui.manager.getPanel ? nn.ui.manager.getPanel("PanelSystemPopup") : null;
-          if (sysPopup && sysPopup.ArrBtn && (sysPopup._isShowing || sysPopup.isShowing)) {
-            const title = (sysPopup.TxtTitle?.text || '').trim();
-            const errorMsg = (sysPopup.TxtErrorMessage?.text || '').trim();
-            const combined = (title + ' ' + errorMsg).toLowerCase();
+          const m = nn.ui && nn.ui.manager;
+          const popupNames = [
+            "PanelSystemPopup", "PanelNetworkErrorPopup", "PanelSystemErrorPopup",
+            "PanelConfirmPopup", "PanelCommonPopup", "PanelNetworkPopup",
+            "PanelPopupGeneral", "PanelAlert", "PanelNotice"
+          ];
+
+          let targetPopup = null;
+          if (m) {
+            for (const name of popupNames) {
+              let p = null;
+              try { if (typeof m.getPanel === 'function') p = m.getPanel(name); } catch(_) {}
+              if (!p && m._mapPanel && m._mapPanel.get) {
+                try { p = m._mapPanel.get(name); } catch(_) {}
+              }
+              if (p) {
+                const isShowing = !!(p._isShowing || p.isShowing || p.isOpen || (p.gameObject && (p.gameObject.activeInHierarchy || p.gameObject.activeSelf)));
+                if (isShowing) { targetPopup = p; break; }
+              }
+            }
+
+            if (!targetPopup && m._listOpenPanel && m._listOpenPanel.length > 0) {
+              for (let i = m._listOpenPanel.length - 1; i >= 0; i--) {
+                const p = m._listOpenPanel[i];
+                if (!p) continue;
+                const pName = (p.name || (p.constructor && p.constructor.name) || '').toLowerCase();
+                if (pName.includes('popup') || pName.includes('network') || pName.includes('error') || pName.includes('system') || pName.includes('confirm')) {
+                  const isShowing = !!(p._isShowing || p.isShowing || p.isOpen || (p.gameObject && (p.gameObject.activeInHierarchy || p.gameObject.activeSelf)));
+                  if (isShowing) { targetPopup = p; break; }
+                }
+              }
+            }
+          }
+
+          if (targetPopup) {
+            const title = ((targetPopup.TxtTitle && targetPopup.TxtTitle.text) || (targetPopup.txtTitle && targetPopup.txtTitle.text) || '').trim();
+            const errorMsg = ((targetPopup.TxtErrorMessage && targetPopup.TxtErrorMessage.text) || (targetPopup.TxtContent && targetPopup.TxtContent.text) || (targetPopup.TxtDesc && targetPopup.TxtDesc.text) || (targetPopup.txtMessage && targetPopup.txtMessage.text) || '').trim();
+            const combined = (title + ' ' + errorMsg + ' ' + (targetPopup.name || '')).toLowerCase();
 
             const isNetError = combined.includes('kết nối') || 
                                combined.includes('máy chủ') || 
+                               combined.includes('mất kết nối') || 
+                               combined.includes('ngắt kết nối') || 
+                               combined.includes('thử lại') || 
                                combined.includes('reconnect') || 
                                combined.includes('connection') || 
                                combined.includes('server') || 
+                               combined.includes('network') || 
+                               combined.includes('timeout') || 
                                combined.includes('재접속') || 
                                combined.includes('네트워크') || 
-                               combined.includes('network');
+                               combined.includes('서버') || 
+                               combined.includes('연결') ||
+                               combined.includes('다시 시도') ||
+                               combined.includes('재시도');
 
             if (isNetError) {
               const nowMs = Date.now();
@@ -17849,44 +17907,97 @@ function sendEvaluatePoll() {
                   message: 'Chờ giãn cách 30s trước lần thử lại tiếp theo (' + remainingSec + 's)...'
                 };
               } else {
-                const len = sysPopup.ArrBtn.Length !== undefined ? sysPopup.ArrBtn.Length : (sysPopup.ArrBtn.length || 0);
-                for (let i = 0; i < len; i++) {
-                  const btn = sysPopup.ArrBtn.get_Item ? sysPopup.ArrBtn.get_Item(i) : sysPopup.ArrBtn[i];
+                const buttons = [];
+                if (targetPopup.ArrBtn) {
+                  const len = targetPopup.ArrBtn.Length !== undefined ? targetPopup.ArrBtn.Length : (targetPopup.ArrBtn.length || 0);
+                  for (let i = 0; i < len; i++) {
+                    const btn = targetPopup.ArrBtn.get_Item ? targetPopup.ArrBtn.get_Item(i) : targetPopup.ArrBtn[i];
+                    if (btn) buttons.push(btn);
+                  }
+                }
+                if (buttons.length === 0 && targetPopup.arrBtn) {
+                  const len = targetPopup.arrBtn.Length !== undefined ? targetPopup.arrBtn.Length : (targetPopup.arrBtn.length || 0);
+                  for (let i = 0; i < len; i++) {
+                    const btn = targetPopup.arrBtn.get_Item ? targetPopup.arrBtn.get_Item(i) : targetPopup.arrBtn[i];
+                    if (btn) buttons.push(btn);
+                  }
+                }
+                if (buttons.length === 0) {
+                  if (targetPopup.BtnConfirm) buttons.push(targetPopup.BtnConfirm);
+                  if (targetPopup.BtnOk) buttons.push(targetPopup.BtnOk);
+                  if (targetPopup.btnConfirm) buttons.push(targetPopup.btnConfirm);
+                  if (targetPopup.BtnRetry) buttons.push(targetPopup.BtnRetry);
+                }
+
+                let clickedBtn = null;
+                let clickedText = '';
+                for (const btn of buttons) {
                   if (!btn) continue;
-                  const isActive = btn.gameObject ? (btn.gameObject.activeSelf ?? true) : true;
+                  const isActive = btn.gameObject ? (btn.gameObject.activeInHierarchy ?? btn.gameObject.activeSelf ?? true) : true;
                   if (!isActive) continue;
 
-                  const btnText = (btn.Text?.text || '').trim();
+                  let btnText = ((btn.Text && btn.Text.text) || (btn.Txt && btn.Txt.text) || (btn.TxtBtn && btn.TxtBtn.text) || '').trim();
+                  if (!btnText && btn.GetComponentInChildren) {
+                    try {
+                      const tmp = btn.GetComponentInChildren(CS.TMPro.TMP_Text);
+                      if (tmp && tmp.text) btnText = tmp.text.trim();
+                    } catch(_) {}
+                    if (!btnText) {
+                      try {
+                        const ut = btn.GetComponentInChildren(CS.UnityEngine.UI.Text);
+                        if (ut && ut.text) btnText = ut.text.trim();
+                      } catch(_) {}
+                    }
+                  }
+
                   const lowerText = btnText.toLowerCase();
 
                   if (btnText === 'Xác nhận' || 
+                      btnText === 'Thử lại' || 
+                      btnText === 'Đồng ý' || 
                       btnText === 'Confirm' || 
                       btnText === 'OK' || 
+                      btnText === 'Retry' || 
                       lowerText === 'xác nhận' || 
+                      lowerText === 'thử lại' || 
                       lowerText === 'confirm' || 
                       lowerText === 'ok' || 
+                      lowerText === 'retry' || 
                       btnText === '확인' || 
+                      btnText === '재시도' || 
+                      btnText === '다시 시도' || 
+                      btnText === '재접속' || 
                       btnText === '确认' || 
+                      btnText === '确定' || 
                       btnText === '確認') {
-                    if (btn.onClick && typeof btn.onClick.Invoke === 'function') {
-                      btn.onClick.Invoke();
-                      globalThis.__lastAutoReconnectTime = nowMs;
-                      autoReconnectResult = {
-                        handled: true,
-                        buttonText: btnText,
-                        title: title,
-                        message: errorMsg,
-                        nextRetryInSec: 30
-                      };
-                      break;
-                    }
+                    clickedBtn = btn;
+                    clickedText = btnText || 'Xác nhận';
+                    break;
                   }
                 }
+
+                if (!clickedBtn && buttons.length === 1) {
+                  const singleBtn = buttons[0];
+                  const isActive = singleBtn.gameObject ? (singleBtn.gameObject.activeInHierarchy ?? singleBtn.gameObject.activeSelf ?? true) : true;
+                  if (isActive) {
+                    clickedBtn = singleBtn;
+                    clickedText = 'Xác nhận';
+                  }
+                }
+
+                if (clickedBtn && clickedBtn.onClick && typeof clickedBtn.onClick.Invoke === 'function') {
+                  clickedBtn.onClick.Invoke();
+                  globalThis.__lastAutoReconnectTime = nowMs;
+                  autoReconnectResult = {
+                    handled: true,
+                    buttonText: clickedText,
+                    title: title,
+                    message: errorMsg,
+                    nextRetryInSec: 30,
+                    timestamp: nowMs
+                  };
+                }
               }
-            }
-          } else {
-            if (globalThis.__lastAutoReconnectTime) {
-              globalThis.__lastAutoReconnectTime = 0;
             }
           }
         }
@@ -18218,6 +18329,9 @@ function sendEvaluatePoll() {
 
 function applyLiveGameData(data) {
   if (!data) return;
+  if (typeof checkOutdatedBatLauncher === 'function') {
+    checkOutdatedBatLauncher(data);
+  }
   window.isGameLiveSynced = true;
   window.lastLiveSyncTime = Date.now();
   if (window.GenesisGameBridge) {
@@ -18281,8 +18395,12 @@ function applyLiveGameData(data) {
     addJewelLog('🔮 Tự động lắp bộ kỹ năng chuẩn cho Class: [' + skillList + ']', 'success');
   }
   if (data.autoReconnectResult && data.autoReconnectResult.handled) {
-    const btnName = data.autoReconnectResult.buttonText || 'Xác nhận';
-    addJewelLog('🌐 Tự động ấn nút [' + btnName + '] kết nối lại game sau sự cố mạng (Chu kỳ giãn cách: 30s/lần)!', 'success');
+    const rKey = data.autoReconnectResult.timestamp || (data.autoReconnectResult.buttonText + '_' + Math.floor(Date.now() / 30000));
+    if (window.__lastHandledReconnectKey !== rKey) {
+      window.__lastHandledReconnectKey = rKey;
+      const btnName = data.autoReconnectResult.buttonText || 'Xác nhận';
+      addJewelLog('🌐 Tự động ấn nút [' + btnName + '] kết nối lại game sau sự cố mạng (Chu kỳ giãn cách: 30s/lần)!', 'success');
+    }
   }
   const prevStageTid = userProfile.stageTid;
   userProfile.nickname = data.nickname || userProfile.nickname;
@@ -27895,6 +28013,106 @@ function checkAndShowUpdateNotice() {
   } catch(e) {}
 }
 /* UPDATE_NOTICE_END */
+
+/* OUTDATED_BAT_NOTICE_START */
+const LATEST_BAT_LAUNCHER_VERSION = '3.3';
+
+function compareLauncherVersions(v1, v2) {
+  if (!v1 && !v2) return 0;
+  if (!v1) return -1;
+  if (!v2) return 1;
+  const p1 = String(v1).replace(/^v/i, '').split('.').map(Number);
+  const p2 = String(v2).replace(/^v/i, '').split('.').map(Number);
+  const maxLen = Math.max(p1.length, p2.length);
+  for (let i = 0; i < maxLen; i++) {
+    const n1 = isNaN(p1[i]) ? 0 : p1[i];
+    const n2 = isNaN(p2[i]) ? 0 : p2[i];
+    if (n1 < n2) return -1;
+    if (n1 > n2) return 1;
+  }
+  return 0;
+}
+
+function isOutdatedBatVersion(version) {
+  if (!version) return true;
+  return compareLauncherVersions(version, LATEST_BAT_LAUNCHER_VERSION) < 0;
+}
+
+window.__hasShownOutdatedBatNotice = false;
+
+function checkOutdatedBatLauncher(data) {
+  if (!data) return;
+  if (!data.isLiveConnected && !data.nickname) return;
+  if (window.__hasShownOutdatedBatNotice) return;
+
+  // 1. Check URL query param ?launcher=... if user launched browser via bat
+  try {
+    if (typeof window !== 'undefined' && window.location && window.location.search) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const launcherParam = urlParams.get('launcher');
+      if (launcherParam && isOutdatedBatVersion(launcherParam)) {
+        window.__hasShownOutdatedBatNotice = true;
+        setTimeout(function() { openOutdatedBatModal(launcherParam); }, 400);
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // 2. Check detected launcher or hook or bridge version
+  const detectedVer = data.launcherVersion || data.hookVersion || (data.liveSyncSource === 'game_hook_v3' && !data.hookVersion ? '3.2' : null);
+  if (isOutdatedBatVersion(detectedVer)) {
+    window.__hasShownOutdatedBatNotice = true;
+    setTimeout(function() { openOutdatedBatModal(detectedVer || '3.2'); }, 400);
+  }
+}
+
+function openOutdatedBatModal(detectedVer) {
+  const modal = document.getElementById('outdatedBatModal');
+  if (!modal) return;
+  const curEl = document.getElementById('outdatedBatCurrentVer');
+  if (curEl) curEl.textContent = detectedVer ? ('v' + detectedVer) : 'v3.2 (Bản cũ)';
+  const latEl = document.getElementById('outdatedBatLatestVer');
+  if (latEl) latEl.textContent = 'v' + LATEST_BAT_LAUNCHER_VERSION;
+  
+  const savedLang = (typeof localStorage !== 'undefined' && localStorage.getItem('genesis_helper_lang')) || (window.currentLang || 'vi');
+  setOutdatedBatNoticeLang(savedLang === 'vi' ? 'vi' : 'en');
+  modal.style.display = 'flex';
+}
+
+function closeOutdatedBatModal() {
+  const modal = document.getElementById('outdatedBatModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function setOutdatedBatNoticeLang(lang) {
+  const isVi = (lang === 'vi');
+  const viContent = document.getElementById('outdatedBatVi');
+  const enContent = document.getElementById('outdatedBatEn');
+  const tabVi = document.getElementById('outdatedBatTabVi');
+  const tabEn = document.getElementById('outdatedBatTabEn');
+  const title = document.getElementById('outdatedBatTitle');
+  const subtitle = document.getElementById('outdatedBatSubtitle');
+  const dlBtn = document.getElementById('outdatedBatDlBtnText');
+  const closeBtn = document.getElementById('outdatedBatCloseBtnText');
+
+  if (viContent) viContent.style.display = isVi ? 'block' : 'none';
+  if (enContent) enContent.style.display = isVi ? 'none' : 'block';
+
+  if (tabVi) {
+    tabVi.style.background = isVi ? '#1f6feb' : 'transparent';
+    tabVi.style.color = isVi ? '#ffffff' : '#8b949e';
+  }
+  if (tabEn) {
+    tabEn.style.background = !isVi ? '#1f6feb' : 'transparent';
+    tabEn.style.color = !isVi ? '#ffffff' : '#8b949e';
+  }
+
+  if (title) title.textContent = isVi ? 'Phát Hiện File .BAT / LiveSync Bản Cũ' : 'Outdated .BAT / LiveSync Launcher Detected';
+  if (subtitle) subtitle.textContent = isVi ? 'Vui lòng cập nhật file mới để sử dụng tính năng mới & sửa lỗi quan trọng' : 'Please update to the latest script for new features & critical bug fixes';
+  if (dlBtn) dlBtn.textContent = isVi ? 'Tải Gói Script Mới (.ZIP)' : 'Download New Script (.ZIP)';
+  if (closeBtn) closeBtn.textContent = isVi ? 'Đã Hiểu / Đóng' : 'Got It / Close';
+}
+/* OUTDATED_BAT_NOTICE_END */
 </script>
 
 
@@ -28097,6 +28315,112 @@ function checkAndShowUpdateNotice() {
         </button>
       </div>
 
+    </div>
+
+  </div>
+</div>
+
+<!-- OUTDATED BAT / LAUNCHER NOTICE MODAL (Bilingual VI / EN) -->
+<div id="outdatedBatModal" style="display:none; position:fixed; inset:0; width:100%; height:100%; background:rgba(0,0,0,0.88); backdrop-filter:blur(6px); z-index:10000002; justify-content:center; align-items:center; padding:16px;">
+  <div style="background:#0d1117; border:1px solid #f85149; border-radius:14px; max-width:680px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.95); display:flex; flex-direction:column; position:relative;">
+    
+    <!-- Modal Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #30363d; padding:16px 20px; background:linear-gradient(180deg, #1c1214 0%, #0d1117 100%);">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:26px;">⚠️</span>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="background:rgba(248,81,73,0.2); color:#f85149; border:1px solid #f85149; font-size:11px; font-weight:bold; padding:2px 8px; border-radius:12px; text-transform:uppercase;">CẦN CẬP NHẬT / UPDATE REQUIRED</span>
+            <h3 id="outdatedBatTitle" style="margin:0; font-size:17px; color:#f0f6fc; font-weight:700;">Phát Hiện File .BAT / LiveSync Bản Cũ</h3>
+          </div>
+          <div id="outdatedBatSubtitle" style="font-size:12px; color:#8b949e; margin-top:2px;">Vui lòng cập nhật file mới để sử dụng tính năng mới &amp; sửa lỗi quan trọng</div>
+        </div>
+      </div>
+      
+      <!-- Right: Language Switcher Tabs & Close Button -->
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div style="display:flex; background:#21262d; border:1px solid #30363d; border-radius:8px; padding:2px;">
+          <button type="button" id="outdatedBatTabVi" onclick="setOutdatedBatNoticeLang('vi')" style="background:#1f6feb; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:600; padding:4px 10px; cursor:pointer; transition:all 0.2s;">🇻🇳 Tiếng Việt</button>
+          <button type="button" id="outdatedBatTabEn" onclick="setOutdatedBatNoticeLang('en')" style="background:transparent; color:#8b949e; border:none; border-radius:6px; font-size:12px; font-weight:600; padding:4px 10px; cursor:pointer; transition:all 0.2s;">🇬🇧 English</button>
+        </div>
+        <button type="button" onclick="closeOutdatedBatModal()" style="background:transparent; border:none; color:#8b949e; font-size:20px; cursor:pointer; padding:4px 8px; border-radius:6px; line-height:1;" title="Đóng / Close">✕</button>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+      
+      <!-- Version Alert Card -->
+      <div style="background:#161b22; border:1px solid #f85149; border-radius:10px; padding:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:20px;">⚡</span>
+          <div>
+            <div style="font-size:12px; color:#8b949e;">Phiên bản bạn đang chạy / Your version:</div>
+            <div id="outdatedBatCurrentVer" style="font-size:15px; font-weight:bold; color:#f85149;">v3.2 (Bản cũ)</div>
+          </div>
+        </div>
+        <div style="font-size:18px; color:#8b949e;">➔</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:20px;">🚀</span>
+          <div>
+            <div style="font-size:12px; color:#8b949e;">Phiên bản mới nhất trên Web / Latest:</div>
+            <div id="outdatedBatLatestVer" style="font-size:15px; font-weight:bold; color:#56d364;">v3.3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= VIETNAMESE CONTENT ================= -->
+      <div id="outdatedBatVi" style="display:block;">
+        
+        <div style="background:#161b22; border:1px solid #30363d; border-radius:10px; padding:15px; margin-bottom:14px;">
+          <b style="color:#58a6ff; font-size:14px;">🌟 Các tính năng mới &amp; Bản sửa lỗi quan trọng trong bản v3.3:</b>
+          <ul style="margin:8px 0 0 0; padding-left:20px; font-size:12.5px; color:#c9d1d9; line-height:1.7;">
+            <li><b>🔄 Tự động kết nối lại (Auto-reconnect 30s):</b> Tự động bấm thử lại/kết nối lại khi bị rớt mạng hoặc xuất hiện popup lỗi mạng, không lo đứt quãng khi AFK!</li>
+            <li><b>⏱️ Sửa lỗi treo lịch sử Ải &amp; Treo thời gian (2204.9s):</b> Tự động nhận diện chu kỳ lặp ải khi cắm AFK (Hell 2-6, Ác Mộng,...), cập nhật lịch sử ải liên tục không bị đơ!</li>
+            <li><b>🛡️ Lò Rèn &amp; Kho Ngọc Tier 3:</b> Hỗ trợ tự động ghép ngọc và cất đồ Tier 3 chuẩn xác, an toàn tuyệt đối.</li>
+          </ul>
+        </div>
+
+        <div style="background:#0d1117; border-left:3px solid #238636; padding:12px 14px; border-radius:0 8px 8px 0; font-size:12px; color:#c9d1d9; line-height:1.6;">
+          <b style="color:#7ee787;">📖 Cách cập nhật cực kỳ đơn giản (chỉ 10 giây):</b><br>
+          1. Bấm nút <b>"Tải Gói Script Mới (.ZIP)"</b> ở bên dưới.<br>
+          2. Mở thư mục game (nơi có file <code>Genesis.exe</code>) và giải nén đè cả 3 file mới vào.<br>
+          3. Chạy lại file <code>cai_dat_livesync.bat</code> là xong!
+        </div>
+
+      </div>
+
+      <!-- ================= ENGLISH CONTENT ================= -->
+      <div id="outdatedBatEn" style="display:none;">
+        
+        <div style="background:#161b22; border:1px solid #30363d; border-radius:10px; padding:15px; margin-bottom:14px;">
+          <b style="color:#58a6ff; font-size:14px;">🌟 New Features &amp; Critical Bug Fixes in v3.3:</b>
+          <ul style="margin:8px 0 0 0; padding-left:20px; font-size:12.5px; color:#c9d1d9; line-height:1.7;">
+            <li><b>🔄 Auto-Reconnect (30s cooldown):</b> Automatically detects disconnect and network error popups, clicking retry/reconnect to keep your AFK farming uninterrupted!</li>
+            <li><b>⏱️ Fixed Stage Loop Hang &amp; Duration Freeze (2204.9s):</b> Accurately recognizes stage repeating cycles during idle farming and logs each run properly without freezing.</li>
+            <li><b>🛡️ Auto-Forge &amp; Tier 3 Jewel/Storage Engine:</b> Full automated fusion and deposit support for Tier 3 items and jewels.</li>
+          </ul>
+        </div>
+
+        <div style="background:#0d1117; border-left:3px solid #238636; padding:12px 14px; border-radius:0 8px 8px 0; font-size:12px; color:#c9d1d9; line-height:1.6;">
+          <b style="color:#7ee787;">📖 Quick 10-Second Update Guide:</b><br>
+          1. Click <b>"Download New Script (.ZIP)"</b> below.<br>
+          2. Open your game directory (where <code>Genesis.exe</code> is located) and extract/overwrite all 3 files.<br>
+          3. Double-click <code>cai_dat_livesync.bat</code> and you're ready!
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div style="border-top:1px solid #30363d; padding:14px 20px; background:#161b22; display:flex; justify-content:flex-end; align-items:center; gap:12px; border-radius:0 0 14px 14px;">
+      <a href="LiveSync_1Click.zip" download="LiveSync_1Click.zip" style="background:#238636; color:#ffffff; font-weight:bold; font-size:13px; padding:8px 18px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(35,134,54,0.35); transition:all 0.2s;" onmouseover="this.style.background='#2ea043'" onmouseout="this.style.background='#238636'">
+        <span>📥</span> <span id="outdatedBatDlBtnText">Tải Gói Script Mới (.ZIP) / Download</span>
+      </a>
+      <button type="button" onclick="closeOutdatedBatModal()" style="background:#30363d; border:1px solid #484f58; color:#c9d1d9; font-weight:600; font-size:13px; padding:8px 18px; border-radius:6px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#3c444d'" onmouseout="this.style.background='#30363d'">
+        <span id="outdatedBatCloseBtnText">Đã Hiểu / Đóng</span>
+      </button>
     </div>
 
   </div>
