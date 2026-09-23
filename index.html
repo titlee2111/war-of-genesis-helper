@@ -1515,7 +1515,7 @@ body {
           </div>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
-          <button class="small-btn" style="background:#238636; color:#fff;" onclick="renderStageHistoryTable()">🔄 Làm Mới</button>
+          <button class="small-btn" style="background:#238636; color:#fff;" onclick="renderStageHistoryTable(this)">🔄 Làm Mới</button>
           <button class="small-btn" style="background:#21262d; color:#f85149; border:1px solid #f8514944;" onclick="clearStageHistory()">🗑️ Xóa Lịch Sử</button>
         </div>
       </div>
@@ -1527,6 +1527,7 @@ body {
             <tr>
               <th style="width:70px; text-align:center;"># Lượt</th>
               <th>🗺️ Ải Trong Game</th>
+              <th style="text-align:center; min-width:105px;">🕒 Giờ Hoàn Thành</th>
               <th>🌲 Khu Vực</th>
               <th style="color:#e3b341;">💰 Vàng / Giây</th>
               <th style="color:#bc8cff;">📈 EXP / Giây</th>
@@ -1557,10 +1558,11 @@ body {
           </div>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
-          <button class="small-btn" style="background:#238636; color:#fff;" onclick="renderSpecialBattlesTable()">🔄 Làm Mới</button>
+          <button class="small-btn" style="background:#238636; color:#fff;" onclick="renderSpecialBattlesTable(this)">🔄 Làm Mới</button>
           <button class="small-btn" style="background:#21262d; color:#f85149; border:1px solid #f8514944;" onclick="clearSpecialBattleHistory()">🗑️ Xóa Lịch Sử</button>
         </div>
       </div>
+      <div id="specialBattleCountdownBanner" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px; margin-bottom:14px;"></div>
       <div id="specialBattleSummaryCard" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; margin-bottom:16px;"></div>
       <div style="overflow-x:auto;">
         <table id="specialBattleTable">
@@ -1568,6 +1570,7 @@ body {
             <tr>
               <th style="width:60px; text-align:center;">#</th>
               <th>🏷️ Loại Trận</th>
+              <th style="text-align:center; min-width:105px;">🕒 Giờ Đánh (Windows)</th>
               <th>⚔️ Class</th>
               <th style="color:#f85149;">🐉 Tổng Sát Thương Gây Ra</th>
               <th>⏱️ Thời Gian Sống Sót</th>
@@ -2280,6 +2283,10 @@ const I18N_DICT = {
   '# Lượt': '# Run',
   '🏆 Hạng': '🏆 Rank',
   '🗺️ Ải Trong Game': '🗺️ Stage',
+  '🕒 Giờ Hoàn Thành': '🕒 Completion Time',
+  '🕒 Giờ Đánh (Windows)': '🕒 Time (Windows)',
+  '🕒 Giờ Đánh': '🕒 Battle Time',
+  'Thời Gian Hoàn Thành (Giờ Windows)': 'Completion Time (Windows)',
   '🌲 Khu Vực': '🌲 Region',
   '💰 Vàng / Giây': '💰 Gold / Sec',
   '📈 EXP / Giây': '📈 EXP / Sec',
@@ -3806,6 +3813,10 @@ const I18N_MULTI_4 = {
 
 const I18N_MULTI_5 = {
   '🏷️ Loại Trận': ['🏷️ Battle Type', '🏷️ Tipo de Batalha', '🏷️ Savaş Türü', '🏷️ ประเภทการต่อสู้', '🏷️ Jenis Battle', '🏷️ 戰鬥類型', '🏷️ Тип боя', '🏷️ Tipo de Batalla'],
+  '🕒 Giờ Hoàn Thành': ['🕒 Completion Time', '🕒 Hora de Conclusão', '🕒 Tamamlanma Saati', '🕒 เวลาเสร็จสิ้น', '🕒 Waktu Selesai', '🕒 完成時間', '🕒 Время завершения', '🕒 Hora de Finalización'],
+  '🕒 Giờ Đánh (Windows)': ['🕒 Time (Windows)', '🕒 Hora (Windows)', '🕒 Saat (Windows)', '🕒 เวลา (Windows)', '🕒 Waktu (Windows)', '🕒 時間 (Windows)', '🕒 Время (Windows)', '🕒 Hora (Windows)'],
+  '🕒 Giờ Đánh': ['🕒 Battle Time', '🕒 Hora da Batalha', '🕒 Savaş Saati', '🕒 เวลาต่อสู้', '🕒 Waktu Battle', '🕒 戰鬥時間', '🕒 Время боя', '🕒 Hora de Batalla'],
+  'Thời Gian Hoàn Thành (Giờ Windows)': ['Completion Time (Windows)', 'Hora de Conclusão (Windows)', 'Tamamlanma Saati (Windows)', 'เวลาเสร็จสิ้น (Windows)', 'Waktu Selesai (Windows)', '完成時間 (Windows)', 'Время завершения (Windows)', 'Hora de Finalización (Windows)'],
   '🔍 Xem': ['🔍 View', '🔍 Ver', '🔍 Gör', '🔍 ดู', '🔍 Lihat', '🔍 查看', '🔍 Смотреть', '🔍 Ver'],
   'Đóng': ['Close', 'Fechar', 'Kapat', 'ปิด', 'Tutup', '關閉', 'Закрыть', 'Cerrar'],
   'Tổng Sát Thương Gây Ra': ['Total Damage Dealt', 'Dano Total Causado', 'Toplam Verilen Hasar', 'ดาเมจรวมที่สร้าง', 'Total Damage Diberikan', '造成總傷害', 'Общий нанесённый урон', 'Daño Total Causado'],
@@ -4860,6 +4871,7 @@ function switchLanguage(lang) {
   }
   if (typeof renderStageTable === 'function') renderStageTable();
   if (typeof renderStageHistoryTable === 'function') renderStageHistoryTable();
+  if (typeof renderSpecialBattlesTable === 'function') renderSpecialBattlesTable();
   if (typeof renderCombatBreakdown === 'function') renderCombatBreakdown();
   if (typeof renderTree === 'function') renderTree();
   if (typeof updateInspector === 'function') updateInspector();
@@ -18359,11 +18371,22 @@ function applyLiveGameData(data) {
     userProfile.dungeonInfo = data.dungeonInfo;
     if (window.userSaveProfile) window.userSaveProfile.dungeonInfo = data.dungeonInfo;
   }
+  if (data.specialBattleSchedule) {
+    userProfile.specialBattleSchedule = data.specialBattleSchedule;
+    if (window.userSaveProfile) window.userSaveProfile.specialBattleSchedule = data.specialBattleSchedule;
+  }
   if (data.raidDamage !== undefined) userProfile.raidDamage = data.raidDamage;
   if (data.worldBossDamage !== undefined) userProfile.worldBossDamage = data.worldBossDamage;
 
+  if (typeof syncSpecialBattlesFromDungeonInfo === 'function') {
+    syncSpecialBattlesFromDungeonInfo(data);
+  }
+  if (typeof updateSpecialBattleCountdowns === 'function') {
+    updateSpecialBattleCountdowns();
+  }
+
   const spSec = document.getElementById('specialBattleSection');
-  if (spSec && spSec.style.display !== 'none' && (window.liveSpecialBattle || data.specialBattles || data.dungeonInfo)) {
+  if (spSec && spSec.style.display !== 'none' && (window.liveSpecialBattle || data.specialBattles || data.dungeonInfo || data.specialBattleSchedule)) {
     renderSpecialBattlesTable();
   }
   if (data.currentStageRun) {
@@ -19454,7 +19477,8 @@ function getSpecialBattleHistory() {
   } catch (e) {}
 
   // If local history is empty, synthesize career summary from userProfile.dungeonInfo or specialBattles
-  if (list.length === 0) {
+  const clearedSpecialAt = Number(localStorage.getItem('genesis_special_battle_history_cleared_at') || 0);
+  if (list.length === 0 && clearedSpecialAt === 0) {
     const prof = (typeof userProfile !== 'undefined' ? userProfile : (window.userProfile || {})) || {};
     const dInfo = prof.dungeonInfo || (window.userSaveProfile && window.userSaveProfile.dungeonInfo) || {};
     const sb = prof.specialBattles || (window.userSaveProfile && window.userSaveProfile.specialBattles) || {};
@@ -19469,6 +19493,7 @@ function getSpecialBattleHistory() {
       list.push({
         battle_kind: 'raid',
         field_id: raidFId,
+        boss_level: raidFId ? (raidFId % 1000) : 11,
         dungeon_type: 3,
         total_damage: raidScore,
         duration: 60,
@@ -19487,11 +19512,12 @@ function getSpecialBattleHistory() {
     const wbCount = Number(wbInfo.playCount || sb.wbPlayCount || 0);
     const wbRecs = wbInfo.records || [];
     const wbScore = wbRecs[0] ? Number(wbRecs[0]._value || 0) : Number(sb.worldBossDamage || 0);
-    const wbFId = wbRecs[1] ? Number(wbRecs[1]._value || 600008) : 600008;
+    const wbFId = wbRecs[1] ? Number(wbRecs[1]._value || 600013) : 600013;
     if (wbScore > 0 || wbCount > 0) {
       list.push({
         battle_kind: 'worldboss',
         field_id: wbFId,
+        boss_level: wbFId ? (wbFId % 1000) : 13,
         dungeon_type: 2,
         total_damage: wbScore,
         duration: 60,
@@ -19518,7 +19544,27 @@ function saveSpecialBattleHistory(list) {
 
 function clearSpecialBattleHistory() {
   if (typeof confirm === 'function' && !confirm('Bạn có chắc muốn xóa sạch lịch sử Boss Thế Giới & Đột Kích không?')) return;
-  try { localStorage.setItem(SPECIAL_BATTLE_HISTORY_KEY, JSON.stringify([])); } catch (e) {}
+  const nowTs = Date.now();
+  try {
+    localStorage.setItem(SPECIAL_BATTLE_HISTORY_KEY, JSON.stringify([]));
+    localStorage.setItem('genesis_special_battle_history_cleared_at', String(nowTs));
+    const prof = (typeof userProfile !== 'undefined' ? userProfile : (window.userProfile || {})) || {};
+    const dInfo = prof.dungeonInfo || (window.userSaveProfile && window.userSaveProfile.dungeonInfo) || {};
+    const sb = prof.specialBattles || (window.userSaveProfile && window.userSaveProfile.specialBattles) || {};
+    const curWbCount = Number((dInfo.worldBoss && dInfo.worldBoss.playCount) || sb.worldBossPlayCount || 0);
+    const curRaidCount = Number((dInfo.raid && dInfo.raid.playCount) || sb.raidPlayCount || 0);
+    localStorage.setItem('genesis_tracked_wb_playcount', String(curWbCount));
+    localStorage.setItem('genesis_tracked_raid_playcount', String(curRaidCount));
+  } catch (e) {}
+  if (typeof liveWs !== 'undefined' && liveWs && liveWs.readyState === WebSocket.OPEN) {
+    try {
+      liveWs.send(JSON.stringify({
+        id: 99998,
+        method: 'Runtime.evaluate',
+        params: { expression: 'if (globalThis.__specialBattleTracker) { globalThis.__specialBattleTracker.completedBattles = []; globalThis.__specialBattleTracker.current = null; if (globalThis.__specialBattleTracker.clearHistory) globalThis.__specialBattleTracker.clearHistory(); }', returnByValue: true }
+      }));
+    } catch(e) {}
+  }
   renderSpecialBattlesTable();
 }
 
@@ -19540,9 +19586,11 @@ function fmtSpecialBattleDps(b) {
 function updateSpecialBattleHistoryFromGame(gameBattles) {
   if (!gameBattles || !Array.isArray(gameBattles) || gameBattles.length === 0) return;
   const current = getSpecialBattleHistory();
+  const clearedAt = Number(localStorage.getItem('genesis_special_battle_history_cleared_at') || 0);
   let changed = false;
   for (let b of gameBattles) {
     if (!b || !b.battle_kind || !b.timestamp) continue;
+    if (clearedAt > 0 && b.timestamp <= clearedAt) continue;
     const exists = current.some(h => h.timestamp === b.timestamp || (h.field_id === b.field_id && Math.abs((h.timestamp || 0) - (b.timestamp || 0)) < 3000));
     if (!exists) {
       current.unshift(b);
@@ -19553,6 +19601,124 @@ function updateSpecialBattleHistoryFromGame(gameBattles) {
     saveSpecialBattleHistory(current.slice(0, SPECIAL_BATTLE_MAX));
     const sec = document.getElementById('specialBattleSection');
     if (sec && sec.style.display !== 'none') renderSpecialBattlesTable();
+  }
+}
+
+function syncSpecialBattlesFromDungeonInfo(prof) {
+  if (!prof) return;
+  const dInfo = prof.dungeonInfo || (window.userSaveProfile && window.userSaveProfile.dungeonInfo) || {};
+  const sb = prof.specialBattles || (window.userSaveProfile && window.userSaveProfile.specialBattles) || {};
+  const clearedAt = Number(localStorage.getItem('genesis_special_battle_history_cleared_at') || 0);
+
+  const current = getSpecialBattleHistory();
+  let changed = false;
+
+  const ldr = prof.lastDungeonResult;
+
+  // 1. Check World Boss
+  const wbInfo = dInfo.worldBoss || dInfo[2] || {};
+  const wbCount = Number(wbInfo.playCount || sb.worldBossPlayCount || 0);
+  const wbRecs = wbInfo.records || [];
+  const wbScore = wbRecs[0] ? Number(wbRecs[0]._value || 0) : Number(prof.worldBossDamage || sb.worldBossDamage || 0);
+  const wbFId = wbRecs[1] ? Number(wbRecs[1]._value || 600013) : 600013;
+  const wbBossLv = wbFId ? (wbFId % 1000) : 13;
+
+  const lastTrackedWbCount = Number(localStorage.getItem('genesis_tracked_wb_playcount') || -1);
+
+  if (wbCount > 0) {
+    const existingWb = current.find(b => b.battle_kind === 'worldboss');
+    const existingCount = existingWb ? Number(existingWb.play_count || 0) : 0;
+    const isWbLdr = ldr && ldr.battle_kind === 'worldboss' && ldr.total_damage > 0;
+    const finalWbDmg = isWbLdr ? ldr.total_damage : wbScore;
+    const finalWbDur = isWbLdr ? ldr.duration : 60;
+    const finalWbLv = isWbLdr ? ldr.boss_level : wbBossLv;
+    const finalWbFId = isWbLdr ? ldr.field_id : wbFId;
+
+    const isNewWbMatch = (wbCount > existingCount) || (lastTrackedWbCount >= 0 && wbCount > lastTrackedWbCount) || (!existingWb && clearedAt === 0);
+
+    if (isNewWbMatch) {
+      current.unshift({
+        battle_kind: 'worldboss',
+        field_id: finalWbFId,
+        boss_level: finalWbLv,
+        dungeon_type: 2,
+        total_damage: finalWbDmg,
+        duration: finalWbDur,
+        status: 'victory',
+        timestamp: (isWbLdr && ldr.timestamp) ? ldr.timestamp : Date.now(),
+        play_count: wbCount,
+        hero_class: (isWbLdr && ldr.hero_class) ? ldr.hero_class : (prof.heroClass || 'Ranged'),
+        hero_level: (isWbLdr && ldr.hero_level) ? ldr.hero_level : (prof.level || 52),
+        skill_breakdown: (isWbLdr && ldr.skill_breakdown) ? ldr.skill_breakdown : {}
+      });
+      changed = true;
+      localStorage.setItem('genesis_tracked_wb_playcount', String(wbCount));
+    } else if (existingWb && isWbLdr && (existingWb.total_damage !== finalWbDmg || existingWb.duration !== finalWbDur || (ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0 && (!existingWb.skill_breakdown || Object.keys(existingWb.skill_breakdown).length === 0)))) {
+      existingWb.total_damage = finalWbDmg;
+      existingWb.duration = finalWbDur;
+      existingWb.boss_level = finalWbLv;
+      existingWb.field_id = finalWbFId;
+      if (ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0) existingWb.skill_breakdown = ldr.skill_breakdown;
+      if (ldr.timestamp) existingWb.timestamp = ldr.timestamp;
+      changed = true;
+    }
+  }
+
+  // 2. Check Raid
+  const raidInfo = dInfo.raid || dInfo[3] || {};
+  const raidCount = Number(raidInfo.playCount || sb.raidPlayCount || 0);
+  const raidRecs = raidInfo.records || [];
+  const raidScore = raidRecs[0] ? Number(raidRecs[0]._value || 0) : Number(prof.raidDamage || sb.raidDamage || 0);
+  const raidFId = raidRecs[1] ? Number(raidRecs[1]._value || 700011) : 700011;
+  const raidBossLv = raidFId ? (raidFId % 1000) : 11;
+
+  const lastTrackedRaidCount = Number(localStorage.getItem('genesis_tracked_raid_playcount') || -1);
+
+  if (raidCount > 0) {
+    const existingRaid = current.find(b => b.battle_kind === 'raid');
+    const existingCount = existingRaid ? Number(existingRaid.play_count || 0) : 0;
+    const isRaidLdr = ldr && ldr.battle_kind === 'raid' && ldr.total_damage > 0;
+    const finalRaidDmg = isRaidLdr ? ldr.total_damage : raidScore;
+    const finalRaidDur = isRaidLdr ? ldr.duration : 60;
+    const finalRaidLv = isRaidLdr ? ldr.boss_level : raidBossLv;
+    const finalRaidFId = isRaidLdr ? ldr.field_id : raidFId;
+
+    const isNewRaidMatch = (raidCount > existingCount) || (lastTrackedRaidCount >= 0 && raidCount > lastTrackedRaidCount) || (!existingRaid && clearedAt === 0);
+
+    if (isNewRaidMatch) {
+      current.unshift({
+        battle_kind: 'raid',
+        field_id: finalRaidFId,
+        boss_level: finalRaidLv,
+        dungeon_type: 3,
+        total_damage: finalRaidDmg,
+        duration: finalRaidDur,
+        status: 'victory',
+        timestamp: (isRaidLdr && ldr.timestamp) ? ldr.timestamp : Date.now(),
+        play_count: raidCount,
+        hero_class: (isRaidLdr && ldr.hero_class) ? ldr.hero_class : (prof.heroClass || 'Ranged'),
+        hero_level: (isRaidLdr && ldr.hero_level) ? ldr.hero_level : (prof.level || 52),
+        skill_breakdown: (isRaidLdr && ldr.skill_breakdown) ? ldr.skill_breakdown : {}
+      });
+      changed = true;
+      localStorage.setItem('genesis_tracked_raid_playcount', String(raidCount));
+    } else if (existingRaid && isRaidLdr && (existingRaid.total_damage !== finalRaidDmg || existingRaid.duration !== finalRaidDur || (ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0 && (!existingRaid.skill_breakdown || Object.keys(existingRaid.skill_breakdown).length === 0)))) {
+      existingRaid.total_damage = finalRaidDmg;
+      existingRaid.duration = finalRaidDur;
+      existingRaid.boss_level = finalRaidLv;
+      existingRaid.field_id = finalRaidFId;
+      if (ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0) existingRaid.skill_breakdown = ldr.skill_breakdown;
+      if (ldr.timestamp) existingRaid.timestamp = ldr.timestamp;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    saveSpecialBattleHistory(current.slice(0, SPECIAL_BATTLE_MAX));
+    const sec = document.getElementById('specialBattleSection');
+    if (sec && sec.style.display !== 'none') {
+      renderSpecialBattlesTable();
+    }
   }
 }
 
@@ -19571,10 +19737,198 @@ function switchStageHistoryTab(tab) {
   else renderStageHistoryTable();
 }
 
-function renderSpecialBattlesTable() {
+function formatCountdownDuration(totalSec, isEn) {
+  const sec = Math.max(0, Math.floor(totalSec || 0));
+  const d = Math.floor(sec / 86400);
+  const h = Math.floor((sec % 86400) / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (isEn) {
+    if (d > 0) return d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+    if (h > 0) return h + 'h ' + m + 'm ' + s + 's';
+    return m + 'm ' + s + 's';
+  } else {
+    if (d > 0) return d + ' ngày ' + h + ' giờ ' + m + ' phút ' + s + ' giây';
+    if (h > 0) return h + ' giờ ' + m + ' phút ' + s + ' giây';
+    return m + ' phút ' + s + ' giây';
+  }
+}
+
+function getSpecialBattleScheduleCountdown() {
+  const isEn = (localStorage.getItem('genesis_helper_lang') === 'en');
+  const nowSec = Math.floor(Date.now() / 1000);
+  const sched = (window.userProfile && window.userProfile.specialBattleSchedule) || 
+                (window.userSaveProfile && window.userSaveProfile.specialBattleSchedule) || 
+                (window.lastProfileData && window.lastProfileData.specialBattleSchedule) || null;
+
+  let wbStatus = { isOpen: false, remainingSec: 0, text: '' };
+  let raidStatus = { isOpen: false, remainingSec: 0, text: '' };
+
+  if (sched && sched.worldBoss && sched.worldBoss.currEndDt) {
+    const wb = sched.worldBoss;
+    if (nowSec >= wb.currStartDt && nowSec < wb.currEndDt) {
+      wbStatus.isOpen = true;
+      wbStatus.remainingSec = Math.max(0, wb.currEndDt - nowSec);
+      wbStatus.text = (isEn ? 'Ends in: ' : 'Còn lại: ') + formatCountdownDuration(wbStatus.remainingSec, isEn);
+    } else {
+      wbStatus.isOpen = false;
+      const nextOpen = (wb.nextStartDt && wb.nextStartDt > nowSec) ? wb.nextStartDt : (wb.currEndDt + 259200);
+      wbStatus.remainingSec = Math.max(0, nextOpen - nowSec);
+      wbStatus.text = (isEn ? 'Opens in: ' : 'Mở sau: ') + formatCountdownDuration(wbStatus.remainingSec, isEn);
+    }
+  }
+
+  if (sched && sched.raid && (sched.raid.currEndDt || sched.raid.currStartDt)) {
+    const rd = sched.raid;
+    if (nowSec >= rd.currStartDt && nowSec < rd.currEndDt) {
+      raidStatus.isOpen = true;
+      raidStatus.remainingSec = Math.max(0, rd.currEndDt - nowSec);
+      raidStatus.text = (isEn ? 'Ends in: ' : 'Còn lại: ') + formatCountdownDuration(raidStatus.remainingSec, isEn);
+    } else {
+      raidStatus.isOpen = false;
+      const nextOpen = (rd.currStartDt && rd.currStartDt > nowSec) ? rd.currStartDt : (rd.nextStartDt && rd.nextStartDt > nowSec ? rd.nextStartDt : 0);
+      raidStatus.remainingSec = Math.max(0, nextOpen - nowSec);
+      raidStatus.text = (isEn ? 'Opens in: ' : 'Mở sau: ') + formatCountdownDuration(raidStatus.remainingSec, isEn);
+    }
+  }
+
+  // Fallback to 7-day cyclical anchor if schedule data is missing or incomplete
+  if (!sched || !sched.worldBoss || !sched.worldBoss.currEndDt) {
+    const wbEnd0 = 1790261999; // Known WB end epoch second
+    const diff = nowSec - wbEnd0;
+    if (diff < 0) {
+      wbStatus.isOpen = true;
+      wbStatus.remainingSec = -diff;
+      wbStatus.text = (isEn ? 'Ends in: ' : 'Còn lại: ') + formatCountdownDuration(wbStatus.remainingSec, isEn);
+
+      raidStatus.isOpen = false;
+      raidStatus.remainingSec = -diff;
+      raidStatus.text = (isEn ? 'Opens in: ' : 'Mở sau: ') + formatCountdownDuration(raidStatus.remainingSec, isEn);
+    } else {
+      const cycleLen = 604800; // 7 days (3 days raid = 259200, 4 days WB = 345600)
+      const offset = diff % cycleLen;
+      if (offset < 259200) {
+        // Raid is open
+        raidStatus.isOpen = true;
+        raidStatus.remainingSec = 259200 - offset;
+        raidStatus.text = (isEn ? 'Ends in: ' : 'Còn lại: ') + formatCountdownDuration(raidStatus.remainingSec, isEn);
+
+        wbStatus.isOpen = false;
+        wbStatus.remainingSec = 259200 - offset;
+        wbStatus.text = (isEn ? 'Opens in: ' : 'Mở sau: ') + formatCountdownDuration(wbStatus.remainingSec, isEn);
+      } else {
+        // WB is open
+        wbStatus.isOpen = true;
+        wbStatus.remainingSec = cycleLen - offset;
+        wbStatus.text = (isEn ? 'Ends in: ' : 'Còn lại: ') + formatCountdownDuration(wbStatus.remainingSec, isEn);
+
+        raidStatus.isOpen = false;
+        raidStatus.remainingSec = cycleLen - offset;
+        raidStatus.text = (isEn ? 'Opens in: ' : 'Mở sau: ') + formatCountdownDuration(raidStatus.remainingSec, isEn);
+      }
+    }
+  }
+
+  return { worldBoss: wbStatus, raid: raidStatus, isEn: isEn };
+}
+
+function updateSpecialBattleCountdowns() {
+  const banner = document.getElementById('specialBattleCountdownBanner');
+  if (!banner) return;
+  const data = getSpecialBattleScheduleCountdown();
+  const isEn = data.isEn;
+
+  // WB Card
+  const wbColor = data.worldBoss.isOpen ? '#3fb950' : '#8b949e';
+  const wbBadgeBg = data.worldBoss.isOpen ? 'rgba(63,185,80,0.18)' : 'rgba(139,148,158,0.18)';
+  const wbBadgeBorder = data.worldBoss.isOpen ? 'rgba(63,185,80,0.4)' : 'rgba(139,148,158,0.4)';
+  const wbStatusTitle = data.worldBoss.isOpen 
+    ? (isEn ? '🟢 ACTIVE NOW' : '🟢 ĐANG MỞ')
+    : (isEn ? '⏸️ UPCOMING' : '⏸️ SẮP MỞ');
+
+  const wbCard = '<div style="background:#161b22; border:1px solid ' + (data.worldBoss.isOpen ? '#3fb95055' : '#30363d') + '; border-radius:10px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; box-shadow:' + (data.worldBoss.isOpen ? '0 0 10px rgba(63,185,80,0.15)' : 'none') + ';">' +
+    '<div>' +
+      '<div style="font-size:12px; font-weight:bold; color:#f85149; display:flex; align-items:center; gap:6px;">' +
+        '<span>🐉</span> <span>' + (isEn ? 'WORLD BOSS' : 'BOSS THẾ GIỚI') + '</span>' +
+      '</div>' +
+      '<div style="font-size:16px; font-weight:800; color:' + wbColor + '; margin-top:3px; letter-spacing:0.3px;">' +
+        data.worldBoss.text +
+      '</div>' +
+    '</div>' +
+    '<span style="background:' + wbBadgeBg + '; border:1px solid ' + wbBadgeBorder + '; color:' + wbColor + '; font-size:11px; font-weight:bold; padding:4px 8px; border-radius:6px;">' +
+      wbStatusTitle +
+    '</span>' +
+  '</div>';
+
+  // Raid Card
+  const raidColor = data.raid.isOpen ? '#bc8cff' : '#8b949e';
+  const raidBadgeBg = data.raid.isOpen ? 'rgba(188,140,255,0.18)' : 'rgba(139,148,158,0.18)';
+  const raidBadgeBorder = data.raid.isOpen ? 'rgba(188,140,255,0.4)' : 'rgba(139,148,158,0.4)';
+  const raidStatusTitle = data.raid.isOpen 
+    ? (isEn ? '🟣 ACTIVE NOW' : '🟣 ĐANG MỞ')
+    : (isEn ? '⏸️ UPCOMING' : '⏸️ SẮP MỞ');
+
+  const raidCard = '<div style="background:#161b22; border:1px solid ' + (data.raid.isOpen ? '#bc8cff55' : '#30363d') + '; border-radius:10px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; box-shadow:' + (data.raid.isOpen ? '0 0 10px rgba(188,140,255,0.15)' : 'none') + ';">' +
+    '<div>' +
+      '<div style="font-size:12px; font-weight:bold; color:#bc8cff; display:flex; align-items:center; gap:6px;">' +
+        '<span>⚔️</span> <span>' + (isEn ? 'RAID EVENT' : 'ĐỘT KÍCH (RAID)') + '</span>' +
+      '</div>' +
+      '<div style="font-size:16px; font-weight:800; color:' + raidColor + '; margin-top:3px; letter-spacing:0.3px;">' +
+        data.raid.text +
+      '</div>' +
+    '</div>' +
+    '<span style="background:' + raidBadgeBg + '; border:1px solid ' + raidBadgeBorder + '; color:' + raidColor + '; font-size:11px; font-weight:bold; padding:4px 8px; border-radius:6px;">' +
+      raidStatusTitle +
+    '</span>' +
+  '</div>';
+
+  banner.innerHTML = wbCard + raidCard;
+}
+
+function formatWindowsClockTime(ts) {
+  if (!ts) return '—';
+  try {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
+  } catch(e) { return '—'; }
+}
+
+function formatWindowsClockDate(ts) {
+  if (!ts) return '';
+  try {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
+  } catch(e) { return ''; }
+}
+
+function renderSpecialBattlesTable(btn) {
+  if (btn && btn.nodeType === 1) {
+    const origText = btn.innerText;
+    const isEn = (localStorage.getItem('genesis_helper_lang') === 'en');
+    btn.innerText = isEn ? '✅ Refreshed' : '✅ Đã Làm Mới';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.innerText = origText;
+      btn.disabled = false;
+    }, 1500);
+    if (typeof liveWs !== 'undefined' && liveWs && liveWs.readyState === WebSocket.OPEN) {
+      try {
+        liveWs.send(JSON.stringify({
+          id: 99997,
+          method: 'Runtime.evaluate',
+          params: { expression: 'if (typeof fetchInGameProfile === "function") fetchInGameProfile();', returnByValue: true }
+        }));
+      } catch(e) {}
+    }
+  }
   const tbody = document.getElementById('specialBattleTableBody');
   if (!tbody) return;
   const isEn = (localStorage.getItem('genesis_helper_lang') === 'en');
+  if (typeof updateSpecialBattleCountdowns === 'function') {
+    updateSpecialBattleCountdowns();
+  }
   const list = getSpecialBattleHistory();
   const live = (typeof window !== 'undefined' && window.liveSpecialBattle) || null;
 
@@ -19705,8 +20059,8 @@ function renderSpecialBattlesTable() {
   // 2. Render Battles List
   if (list.length === 0 && !live) {
     tbody.innerHTML = isEn
-      ? '<tr><td colspan="6" style="text-align:center; padding:30px; color:#8b949e;">No special battles recorded yet. Enter a World Boss or Raid battle in-game to log it here.</td></tr>'
-      : '<tr><td colspan="6" style="text-align:center; padding:30px; color:#8b949e;">Chưa có trận Boss Thế Giới / Đột Kích nào trong phiên này. Hãy vào đánh Boss Thế Giới hoặc Đột Kích trong game để tự động ghi lại.</td></tr>';
+      ? '<tr><td colspan="7" style="text-align:center; padding:30px; color:#8b949e;">No special battles recorded yet. Enter a World Boss or Raid battle in-game to log it here.</td></tr>'
+      : '<tr><td colspan="7" style="text-align:center; padding:30px; color:#8b949e;">Chưa có trận Boss Thế Giới / Đột Kích nào trong phiên này. Hãy vào đánh Boss Thế Giới hoặc Đột Kích trong game để tự động ghi lại.</td></tr>';
     return;
   }
 
@@ -19719,6 +20073,7 @@ function renderSpecialBattlesTable() {
     liveRowHtml = '<tr style="background: rgba(227, 179, 65, 0.16); border-left: 4px solid #e3b341;">' +
       '<td style="text-align:center;"><span style="background:#e3b341; color:#000; font-weight:800; font-size:11px; padding:3px 8px; border-radius:12px; display:inline-block; box-shadow:0 0 6px rgba(227,179,65,0.4);">⚔️ LIVE</span></td>' +
       '<td><b style="color:#ff7b72;">' + specialBattleKindLabel(live.battle_kind) + '</b> <span style="font-size:10px; background:#e3b341; color:#000; padding:1px 5px; border-radius:4px; font-weight:bold;">' + (isEn ? 'FIGHTING' : 'ĐANG ĐÁNH') + '</span></td>' +
+      '<td style="text-align:center; white-space:nowrap; font-weight:bold; color:#e3b341; font-size:12px;">🕒 ' + formatWindowsClockTime(live.startTime || Date.now()) + '<div style="font-size:10px; color:#e3b341;">' + (isEn ? '(Fighting)' : '(Đang đánh)') + '</div></td>' +
       '<td>' + lcls + '</td>' +
       '<td style="color:#f85149; font-weight:bold; font-size:14px;" title="Tổng máu boss thực tế đã mất qua từng lv — khớp với tổng kết game">💥 ' + Number(Math.round(live.total_damage || 0)).toLocaleString() + '</td>' +
       '<td>⏱️ ' + liveDur.toFixed(1) + 's' + (liveDps > 0 ? ('<div style="font-size:11px; color:#e3b341;">⚡ ~' + liveDps.toLocaleString() + ' /s</div>') : '') + '</td>' +
@@ -19732,12 +20087,12 @@ function renderSpecialBattlesTable() {
     const dps = fmtSpecialBattleDps(b);
     const dpsText = dps > 0 ? ('<div style="font-size:11px; color:#8b949e;">⚡ ~' + dps.toLocaleString() + ' /s</div>') : '';
     const bossLvBadge = b.boss_level ? (' <span style="font-size:10.5px; background:rgba(88,166,255,0.15); border:1px solid rgba(88,166,255,0.4); color:#58a6ff; padding:1px 5px; border-radius:4px; font-weight:bold;">Lv.' + b.boss_level + '</span>') : '';
-    const tierBadge = (b.field_id && b.field_id >= 700000 && b.field_id < 800000) ? (' <span style="font-size:10.5px; background:rgba(227,179,65,0.15); border:1px solid rgba(227,179,65,0.4); color:#e3b341; padding:1px 5px; border-radius:4px; font-weight:bold;">Tier ' + (b.field_id - 700000) + '</span>') : ((b.field_id && b.field_id >= 600000 && b.field_id < 700000) ? (' <span style="font-size:10.5px; background:rgba(88,166,255,0.15); border:1px solid rgba(88,166,255,0.4); color:#58a6ff; padding:1px 5px; border-radius:4px; font-weight:bold;">Tier ' + (b.field_id - 600000) + '</span>') : '');
+    const tierBadge = (b.field_id && b.field_id >= 700000 && b.field_id < 800000) ? (' <span style="font-size:10.5px; background:rgba(227,179,65,0.15); border:1px solid rgba(227,179,65,0.4); color:#e3b341; padding:1px 5px; border-radius:4px; font-weight:bold;">' + (isEn ? 'Level ' : 'Cấp ') + (b.field_id - 700000) + '</span>') : ((b.field_id && b.field_id >= 600000 && b.field_id < 700000) ? (' <span style="font-size:10.5px; background:rgba(88,166,255,0.15); border:1px solid rgba(88,166,255,0.4); color:#58a6ff; padding:1px 5px; border-radius:4px; font-weight:bold;">' + (isEn ? 'Level ' : 'Cấp ') + (b.field_id - 600000) + '</span>') : '');
     const careerBadge = b.isCareerSummary ? (' <span style="font-size:10px; background:rgba(46,160,67,0.15); border:1px solid rgba(46,160,67,0.4); color:#7ee787; padding:1px 5px; border-radius:4px; font-weight:bold;">' + (isEn ? 'CAREER HIGH (' + b.play_count + 'x)' : 'KỶ LỤC (' + b.play_count + ' trận)') + '</span>') : '';
-    const timeStr = b.timestamp ? ('<div style="font-size:10.5px; color:#6e7681; margin-top:2px;">' + new Date(b.timestamp).toLocaleTimeString() + '</div>') : '';
     return '<tr style="border-left:4px solid #f85149;">' +
       '<td style="text-align:center;"><span style="background:#21262d; border:1px solid #30363d; padding:3px 8px; border-radius:10px;">#' + (idx + 1) + '</span></td>' +
-      '<td><b style="color:#ff7b72;">' + specialBattleKindLabel(b.battle_kind) + '</b>' + bossLvBadge + tierBadge + careerBadge + timeStr + '</td>' +
+      '<td><b style="color:#ff7b72;">' + specialBattleKindLabel(b.battle_kind) + '</b>' + bossLvBadge + tierBadge + careerBadge + '</td>' +
+      '<td style="text-align:center; white-space:nowrap; font-weight:600; color:#58a6ff; font-size:13px;">🕒 ' + formatWindowsClockTime(b.timestamp) + '<div style="font-size:10px; color:#8b949e;">' + formatWindowsClockDate(b.timestamp) + '</div></td>' +
       '<td>' + cls + '</td>' +
       '<td style="color:#f85149; font-weight:bold; font-size:14px;">💥 ' + Number(Math.round(b.total_damage || 0)).toLocaleString() + '</td>' +
       '<td>⏱️ ' + Number(b.duration || 0).toFixed(1) + 's' + dpsText + '</td>' +
@@ -19858,6 +20213,30 @@ function buildSkillDpsRowsHtml(battle, heroClass, isEn) {
   }
   // Sort descending by damage
   rows.sort(function(a, b) { return b.dmg - a.dmg; });
+  if (rows.length === 0) {
+    if (isEn) {
+      return '<tr><td colspan="4" style="text-align:center; padding:28px 16px; background:rgba(22,27,34,0.6); border-radius:8px;">' +
+        '<div style="font-size:28px; margin-bottom:8px;">📊</div>' +
+        '<div style="font-weight:bold; color:#e3b341; font-size:15px; margin-bottom:6px;">Server Summary Record</div>' +
+        '<div style="color:#8b949e; font-size:13px; max-width:480px; margin:0 auto 12px; line-height:1.5;">' +
+        'This battle record was synced from the game server summary (LiveSync was not active during combat to capture individual skill hits). The game server records total damage and duration, but does not store per-hit skill breakdown.' +
+        '</div>' +
+        '<div style="display:inline-block; background:rgba(56,139,253,0.12); border:1px solid rgba(56,139,253,0.3); border-radius:6px; padding:6px 14px; font-size:12.5px; color:#58a6ff;">' +
+        '💡 <b>Tip:</b> Run <code>cai_dat_livesync.bat</code> before fighting Boss/Raid to record real-time combat and full per-skill breakdown!' +
+        '</div>' +
+        '</td></tr>';
+    }
+    return '<tr><td colspan="4" style="text-align:center; padding:28px 16px; background:rgba(22,27,34,0.6); border-radius:8px;">' +
+      '<div style="font-size:28px; margin-bottom:8px;">📊</div>' +
+      '<div style="font-weight:bold; color:#e3b341; font-size:15px; margin-bottom:6px;">Dữ Liệu Tổng Kết Từ Server Game</div>' +
+      '<div style="color:#8b949e; font-size:13px; max-width:480px; margin:0 auto 12px; line-height:1.5;">' +
+      'Trận đấu này được ghi nhận từ kỷ lục tổng kết trên server game (chưa bật LiveSync trực tiếp khi đánh). Game chỉ lưu tổng sát thương và thời gian, không lưu chi tiết từng đòn đánh.' +
+      '</div>' +
+      '<div style="display:inline-block; background:rgba(56,139,253,0.12); border:1px solid rgba(56,139,253,0.3); border-radius:6px; padding:6px 14px; font-size:12.5px; color:#58a6ff;">' +
+      '💡 <b>Mẹo:</b> Mở game và chạy file <code>cai_dat_livesync.bat</code> trước khi vào đánh Boss/Raid để ghi lại 100% chi tiết DPS từng chiêu thức!' +
+      '</div>' +
+      '</td></tr>';
+  }
   const barColors = ['#f85149', '#ffa657', '#e3b341', '#7ee787', '#58a6ff', '#bc8cff'];
   return rows.map(function(r, i) {
     const iconSrc = (typeof skillIconsBase64 !== 'undefined' && r.icon && skillIconsBase64[r.icon]) ? skillIconsBase64[r.icon] : null;
@@ -19889,19 +20268,29 @@ function openSpecialBattleDetail(index) {
   if (!modal || !bodyEl) return;
   const dps = fmtSpecialBattleDps(b);
   if (titleEl) titleEl.innerHTML = '<span>' + (isEn ? 'Battle Details:' : 'Chi Tiết Trận Đánh:') + '</span> <span>' + specialBattleKindLabel(b.battle_kind) + '</span>';
-  if (subEl) subEl.innerText = (isEn ? 'Survived ' : 'Sống sót ') + (b.duration || 0).toFixed(1) + 's • ' + (isEn ? 'dealt' : 'gây ra') + ' ' + Number(Math.round(b.total_damage || 0)).toLocaleString() + ' ' + (isEn ? 'damage' : 'SÁT THƯƠNG') + (dps > 0 ? (' (~' + dps.toLocaleString() + ' DPS)') : '');
+  if (subEl) {
+    const timeStr = b.timestamp ? (' • 🕒 ' + formatWindowsClockTime(b.timestamp) + (formatWindowsClockDate(b.timestamp) ? (' ' + formatWindowsClockDate(b.timestamp)) : '')) : '';
+    subEl.innerText = (isEn ? 'Survived ' : 'Sống sót ') + (b.duration || 0).toFixed(1) + 's • ' + (isEn ? 'dealt' : 'gây ra') + ' ' + Number(Math.round(b.total_damage || 0)).toLocaleString() + ' ' + (isEn ? 'damage' : 'SÁT THƯƠNG') + (dps > 0 ? (' (~' + dps.toLocaleString() + ' DPS)') : '') + timeStr;
+  }
   const totalHits = Object.keys(b.skill_breakdown || {}).reduce(function(acc, k) { const e = b.skill_breakdown[k] || {}; if ((Number(e.damage) || 0) <= 0 && (Number(e.hits) || 0) <= 0) return acc; return acc + Number(e.casts !== undefined && e.casts !== null ? e.casts : (e.hits || 0)); }, 0);
+  const castLabel = totalHits > 0 ? ('🎯 ' + totalHits.toLocaleString()) : ('🎯 ' + (isEn ? 'Server Record' : 'Kỷ lục Server'));
   
   let bossLvBox = '';
   if (b.boss_level) {
     bossLvBox = '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#58a6ff;">' + (isEn ? 'Boss Level Reached' : 'Cấp Boss Đạt Được') + '</div><div style="font-size:18px; font-weight:bold; color:#58a6ff;">⭐ Lv. ' + b.boss_level + '</div></div>';
   }
 
+  let timeBox = '';
+  if (b.timestamp) {
+    timeBox = '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#58a6ff;">' + (isEn ? 'Completion Time (Windows)' : 'Thời Gian Hoàn Thành (Giờ Windows)') + '</div><div style="font-size:17px; font-weight:bold; color:#58a6ff;">🕒 ' + formatWindowsClockTime(b.timestamp) + ' <span style="font-size:11.5px; color:#8b949e;">' + formatWindowsClockDate(b.timestamp) + '</span></div></div>';
+  }
+
   const summary = '<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:16px;">' +
     '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#8b949e;">' + (isEn ? 'Total Damage Dealt' : 'Tổng Sát Thương Gây Ra') + '</div><div style="font-size:18px; font-weight:bold; color:#f85149;">💥 ' + Number(Math.round(b.total_damage || 0)).toLocaleString() + '</div></div>' +
     '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#8b949e;">' + (isEn ? 'Average DPS' : 'DPS Trung Bình') + '</div><div style="font-size:18px; font-weight:bold; color:#ffa657;">⚡ ' + dps.toLocaleString() + ' /s</div></div>' +
     '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#8b949e;">' + (isEn ? 'Time Survived' : 'Thời Gian Sống Sót') + '</div><div style="font-size:18px; font-weight:bold;">⏱️ ' + (b.duration || 0).toFixed(1) + 's</div></div>' +
-    '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#8b949e;">' + (isEn ? 'Total Casts' : 'Tổng Số Lần Ra Chiêu') + '</div><div style="font-size:18px; font-weight:bold;">🎯 ' + totalHits.toLocaleString() + '</div></div>' +
+    timeBox +
+    '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#8b949e;">' + (isEn ? 'Total Casts' : 'Tổng Số Lần Ra Chiêu') + '</div><div style="font-size:18px; font-weight:bold;">' + castLabel + '</div></div>' +
     bossLvBox +
     '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#8b949e;">' + (isEn ? 'Hero Level' : 'Cấp Nhân Vật') + '</div><div style="font-size:18px; font-weight:bold;">' + (b.hero_level || '—') + '</div></div>' +
     '</div>';
@@ -19939,19 +20328,18 @@ function saveStageHistory(list) {
 }
 
 function clearStageHistory() {
-  if (confirm('Bạn có chắc muốn xóa sạch 100 ải trong lịch sử chạy không?')) {
+  const isEn = (localStorage.getItem('genesis_helper_lang') === 'en');
+  if (confirm(isEn ? 'Are you sure you want to clear stage history?' : 'Bạn có chắc muốn xóa sạch 100 ải trong lịch sử chạy không?')) {
     try {
       localStorage.setItem('genesis_stage_run_history', JSON.stringify([]));
-    } catch(e) {}
-    try {
-      localStorage.setItem('genesis_special_battle_history', JSON.stringify([]));
+      localStorage.setItem('genesis_stage_history_cleared_at', String(Date.now()));
     } catch(e) {}
     if (typeof liveWs !== 'undefined' && liveWs && liveWs.readyState === WebSocket.OPEN) {
       try {
         liveWs.send(JSON.stringify({
           id: 99999,
           method: 'Runtime.evaluate',
-          params: { expression: 'if (globalThis.__stageTracker) { globalThis.__stageTracker.completedRuns = []; globalThis.__stageTracker.currentRun = null; globalThis.__stageTracker.lastRecordedGameId = null; }', returnByValue: true }
+          params: { expression: 'if (globalThis.__stageTracker) { globalThis.__stageTracker.completedRuns = []; globalThis.__stageTracker.currentRun = null; globalThis.__stageTracker.lastRecordedGameId = null; if (globalThis.__stageTracker.clearHistory) globalThis.__stageTracker.clearHistory(); }', returnByValue: true }
         }));
       } catch(e) {}
     }
@@ -19962,6 +20350,7 @@ function clearStageHistory() {
 
 function updateStageHistoryFromGame(gameRuns) {
   if (!gameRuns || !Array.isArray(gameRuns) || gameRuns.length === 0) return;
+  const clearedAt = Number(localStorage.getItem('genesis_stage_history_cleared_at') || 0);
   const currentHistory = getStageHistory();
   const maxCleared = (window.lastProfileData && window.lastProfileData.clearStageTid) || (typeof lastProfileData !== 'undefined' && lastProfileData && lastProfileData.clearStageTid) || (typeof userProfile !== 'undefined' && userProfile && userProfile.clearStageTid) || 0;
   let changed = false;
@@ -19978,6 +20367,7 @@ function updateStageHistoryFromGame(gameRuns) {
 
   for (let run of gameRuns) {
     if (!run || !run.stage_id) continue;
+    if (clearedAt > 0 && (run.timestamp || 0) <= clearedAt) continue;
     // If run claims success but stage ID > highest cleared stage, it was actually a failed attempt
     if (maxCleared > 0 && run.status === 'success' && run.stage_id > maxCleared) {
       run.status = 'failed';
@@ -19999,7 +20389,26 @@ function updateStageHistoryFromGame(gameRuns) {
   }
 }
 
-function renderStageHistoryTable() {
+function renderStageHistoryTable(btn) {
+  if (btn && btn.nodeType === 1) {
+    const origText = btn.innerText;
+    const isEn = (localStorage.getItem('genesis_helper_lang') === 'en');
+    btn.innerText = isEn ? '✅ Refreshed' : '✅ Đã Làm Mới';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.innerText = origText;
+      btn.disabled = false;
+    }, 1500);
+    if (typeof liveWs !== 'undefined' && liveWs && liveWs.readyState === WebSocket.OPEN) {
+      try {
+        liveWs.send(JSON.stringify({
+          id: 99996,
+          method: 'Runtime.evaluate',
+          params: { expression: 'if (typeof fetchInGameProfile === "function") fetchInGameProfile();', returnByValue: true }
+        }));
+      } catch(e) {}
+    }
+  }
   const tbody = document.getElementById('stageHistoryTableBody');
   if (!tbody) return;
 
@@ -20009,8 +20418,8 @@ function renderStageHistoryTable() {
 
   if (history.length === 0 && !hasLiveRun) {
     tbody.innerHTML = isEn
-      ? '<tr><td colspan="11" style="text-align:center; padding:30px; color:#8b949e;">No stage history recorded yet. Connect Live Sync and start combat in-game!</td></tr>'
-      : '<tr><td colspan="11" style="text-align:center; padding:30px; color:#8b949e;">Chưa có lịch sử chạy ải nào. Hãy bật chế độ Live Sync và vào chiến đấu trong game!</td></tr>';
+      ? '<tr><td colspan="12" style="text-align:center; padding:30px; color:#8b949e;">No stage history recorded yet. Connect Live Sync and start combat in-game!</td></tr>'
+      : '<tr><td colspan="12" style="text-align:center; padding:30px; color:#8b949e;">Chưa có lịch sử chạy ải nào. Hãy bật chế độ Live Sync và vào chiến đấu trong game!</td></tr>';
     return;
   }
 
@@ -20040,6 +20449,7 @@ function renderStageHistoryTable() {
     liveRowHtml = '<tr style="background: rgba(227, 179, 65, 0.16); border-left: 4px solid #e3b341;">' +
       '<td style="text-align:center;"><span style="background:#e3b341; color:#000; font-weight:800; font-size:11px; padding:3px 8px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; gap:3px; white-space:nowrap; box-shadow:0 0 6px rgba(227, 179, 65, 0.4); line-height:1.2;">⚔️ LIVE</span></td>' +
       '<td><b style="color:#58a6ff; font-size:14px;">' + stageLabel + '</b> <span style="font-size:10px; background:#e3b341; color:#000; padding:1px 5px; border-radius:4px; font-weight:bold;">' + (isEn ? 'FARMING' : 'ĐANG ĐÁNH') + '</span><br><span style="font-size:11px; color:#8b949e;">ID: ' + ls.stage_id + '</span></td>' +
+      '<td style="text-align:center; white-space:nowrap; font-weight:bold; color:#e3b341; font-size:12px;">🕒 ' + formatWindowsClockTime(lr.timestamp || Date.now()) + '<div style="font-size:10px; color:#e3b341;">' + (isEn ? '(Running)' : '(Đang đánh)') + '</div></td>' +
       '<td><b>' + areaIcon + ' ' + areaName + '</b></td>' +
       '<td style="color:#e3b341; font-weight:bold; font-size:13.5px;">💰 ' + liveGps.toFixed(2) + ' /s</td>' +
       '<td style="color:#bc8cff; font-weight:bold; font-size:13.5px;">📈 ' + liveEps.toFixed(2) + ' /s</td>' +
@@ -20095,6 +20505,7 @@ function renderStageHistoryTable() {
     return '<tr style="' + rowBg + '">' +
       '<td style="text-align:center;"><span class="rank-badge rank-other" style="background:#21262d; border-color:#30363d;">#' + (idx + 1) + '</span></td>' +
       '<td><b style="color:#58a6ff; font-size:14px;">' + stageLabel + '</b><br><span style="font-size:11px; color:#8b949e;">ID: ' + s.stage_id + '</span></td>' +
+      '<td style="text-align:center; white-space:nowrap; font-weight:600; color:#58a6ff; font-size:13px;">🕒 ' + formatWindowsClockTime(r.timestamp) + '<div style="font-size:10px; color:#8b949e;">' + formatWindowsClockDate(r.timestamp) + '</div></td>' +
       '<td><b>' + areaIcon + ' ' + areaName + '</b></td>' +
       '<td style="color:#e3b341; font-weight:bold; font-size:13.5px;">💰 ' + calcGps.toFixed(2) + ' /s</td>' +
       '<td style="color:#bc8cff; font-weight:bold; font-size:13.5px;">📈 ' + calcEps.toFixed(2) + ' /s</td>' +
@@ -27929,6 +28340,10 @@ setInterval(function() {
       if (typeof renderStageHistoryTable === 'function') renderStageHistoryTable();
     }
   }
+  var spSec = document.getElementById('specialBattleSection');
+  if (spSec && spSec.style.display !== 'none') {
+    if (typeof updateSpecialBattleCountdowns === 'function') updateSpecialBattleCountdowns();
+  }
 }, 1000);
 
 
@@ -27961,12 +28376,10 @@ function openUpdateNoticeModal(forceOpen) {
 }
 
 function closeUpdateNoticeModal() {
-  const chk = document.getElementById('updateNoticeDontShowCheckbox');
-  if (chk && chk.checked) {
-    try {
-      localStorage.setItem('genesis_update_notice_dismissed_v20260920', 'true');
-    } catch(e) {}
-  }
+  try {
+    localStorage.setItem('genesis_update_notice_dismissed_v20260920', 'true');
+    localStorage.setItem('genesis_update_notice_dismissed_v34', 'true');
+  } catch(e) {}
   const modal = document.getElementById('updateNoticeModal');
   if (modal) modal.style.display = 'none';
 }
@@ -27995,8 +28408,8 @@ function setUpdateNoticeLang(lang) {
     tabEn.style.color = !isVi ? '#ffffff' : '#8b949e';
   }
 
-  if (title) title.textContent = isVi ? 'Thông Báo Cập Nhật Hệ Thống' : 'Important System Update Notice';
-  if (subtitle) subtitle.textContent = isVi ? 'Khôi phục toàn bộ tính năng & Cập nhật Script LiveSync' : 'All Features Restored & LiveSync Script Update Guide';
+  if (title) title.textContent = isVi ? 'Thông Báo Cập Nhật Hệ Thống v3.4' : 'System Update Notice v3.4';
+  if (subtitle) subtitle.textContent = isVi ? 'Ghi nhận chuẩn sát thương Boss Thế Giới & Đột Kích 100%' : '100% World Boss & Raid DPS Accuracy & LiveSync v3.4';
   if (dlBtn) dlBtn.textContent = isVi ? 'Tải Script Mới (.ZIP)' : 'Download New Script (.ZIP)';
   if (closeBtn) closeBtn.textContent = isVi ? 'Đã Hiểu' : 'Got It';
   if (dontShowLabel) dontShowLabel.textContent = isVi ? 'Không hiển thị lại thông báo này' : "Don't show this announcement again";
@@ -28004,7 +28417,7 @@ function setUpdateNoticeLang(lang) {
 
 function checkAndShowUpdateNotice() {
   try {
-    const isDismissed = localStorage.getItem('genesis_update_notice_dismissed_v20260920');
+    const isDismissed = localStorage.getItem('genesis_update_notice_dismissed_v34') || localStorage.getItem('genesis_update_notice_dismissed_v20260920');
     if (!isDismissed) {
       setTimeout(function() {
         openUpdateNoticeModal();
@@ -28015,7 +28428,7 @@ function checkAndShowUpdateNotice() {
 /* UPDATE_NOTICE_END */
 
 /* OUTDATED_BAT_NOTICE_START */
-const LATEST_BAT_LAUNCHER_VERSION = '3.3';
+const LATEST_BAT_LAUNCHER_VERSION = '3.4';
 
 function compareLauncherVersions(v1, v2) {
   if (!v1 && !v2) return 0;
@@ -28044,6 +28457,24 @@ function checkOutdatedBatLauncher(data) {
   if (!data) return;
   if (!data.isLiveConnected && !data.nickname) return;
   if (window.__hasShownOutdatedBatNotice) return;
+  try {
+    if (sessionStorage.getItem('genesis_outdated_bat_dismissed') === 'true') return;
+  } catch(e) {}
+
+  // If the currently running bridge or launcher is already >= latest, clean URL and never warn!
+  const currentRunningVer = data.bridgeVersion || data.launcherVersion || data.hookVersion;
+  if (currentRunningVer && compareLauncherVersions(currentRunningVer, LATEST_BAT_LAUNCHER_VERSION) >= 0) {
+    try {
+      if (typeof window !== 'undefined' && window.location && window.history && window.history.replaceState) {
+        const u = new URL(window.location.href);
+        if (u.searchParams.has('launcher') && isOutdatedBatVersion(u.searchParams.get('launcher'))) {
+          u.searchParams.set('launcher', LATEST_BAT_LAUNCHER_VERSION);
+          window.history.replaceState({}, '', u.toString());
+        }
+      }
+    } catch(_) {}
+    return;
+  }
 
   // 1. Check URL query param ?launcher=... if user launched browser via bat
   try {
@@ -28059,10 +28490,10 @@ function checkOutdatedBatLauncher(data) {
   } catch(e) {}
 
   // 2. Check detected launcher or hook or bridge version
-  const detectedVer = data.launcherVersion || data.hookVersion || (data.liveSyncSource === 'game_hook_v3' && !data.hookVersion ? '3.2' : null);
+  const detectedVer = data.launcherVersion || data.hookVersion || (data.liveSyncSource === 'game_hook_v3' && !data.hookVersion ? '3.4' : null);
   if (isOutdatedBatVersion(detectedVer)) {
     window.__hasShownOutdatedBatNotice = true;
-    setTimeout(function() { openOutdatedBatModal(detectedVer || '3.2'); }, 400);
+    setTimeout(function() { openOutdatedBatModal(detectedVer || '3.4'); }, 400);
   }
 }
 
@@ -28070,7 +28501,7 @@ function openOutdatedBatModal(detectedVer) {
   const modal = document.getElementById('outdatedBatModal');
   if (!modal) return;
   const curEl = document.getElementById('outdatedBatCurrentVer');
-  if (curEl) curEl.textContent = detectedVer ? ('v' + detectedVer) : 'v3.2 (Bản cũ)';
+  if (curEl) curEl.textContent = detectedVer ? ('v' + detectedVer) : ('v' + LATEST_BAT_LAUNCHER_VERSION);
   const latEl = document.getElementById('outdatedBatLatestVer');
   if (latEl) latEl.textContent = 'v' + LATEST_BAT_LAUNCHER_VERSION;
   
@@ -28080,6 +28511,10 @@ function openOutdatedBatModal(detectedVer) {
 }
 
 function closeOutdatedBatModal() {
+  window.__hasShownOutdatedBatNotice = true;
+  try {
+    sessionStorage.setItem('genesis_outdated_bat_dismissed', 'true');
+  } catch(e) {}
   const modal = document.getElementById('outdatedBatModal');
   if (modal) modal.style.display = 'none';
 }
@@ -28168,10 +28603,10 @@ function setOutdatedBatNoticeLang(lang) {
         <span style="font-size:26px;">📢</span>
         <div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span style="background:rgba(227,179,65,0.2); color:#e3b341; border:1px solid #e3b341; font-size:11px; font-weight:bold; padding:2px 8px; border-radius:12px; text-transform:uppercase;">UPDATE 20/09/2026</span>
-            <h3 id="updateNoticeTitle" style="margin:0; font-size:17px; color:#f0f6fc; font-weight:700;">Thông Báo Cập Nhật Hệ Thống</h3>
+            <span style="background:rgba(227,179,65,0.2); color:#e3b341; border:1px solid #e3b341; font-size:11px; font-weight:bold; padding:2px 8px; border-radius:12px; text-transform:uppercase;">UPDATE v3.4 (24/09/2026)</span>
+            <h3 id="updateNoticeTitle" style="margin:0; font-size:17px; color:#f0f6fc; font-weight:700;">Thông Báo Cập Nhật Hệ Thống v3.4</h3>
           </div>
-          <div id="updateNoticeSubtitle" style="font-size:12px; color:#8b949e; margin-top:2px;">Khôi phục toàn bộ tính năng &amp; Cập nhật Script LiveSync</div>
+          <div id="updateNoticeSubtitle" style="font-size:12px; color:#8b949e; margin-top:2px;">Ghi nhận chuẩn sát thương Boss Thế Giới &amp; Đột Kích 100%</div>
         </div>
       </div>
       
@@ -28356,7 +28791,7 @@ function setOutdatedBatNoticeLang(lang) {
           <span style="font-size:20px;">⚡</span>
           <div>
             <div style="font-size:12px; color:#8b949e;">Phiên bản bạn đang chạy / Your version:</div>
-            <div id="outdatedBatCurrentVer" style="font-size:15px; font-weight:bold; color:#f85149;">v3.2 (Bản cũ)</div>
+            <div id="outdatedBatCurrentVer" style="font-size:15px; font-weight:bold; color:#f85149;">v3.3 (Bản cũ)</div>
           </div>
         </div>
         <div style="font-size:18px; color:#8b949e;">➔</div>
@@ -28364,7 +28799,7 @@ function setOutdatedBatNoticeLang(lang) {
           <span style="font-size:20px;">🚀</span>
           <div>
             <div style="font-size:12px; color:#8b949e;">Phiên bản mới nhất trên Web / Latest:</div>
-            <div id="outdatedBatLatestVer" style="font-size:15px; font-weight:bold; color:#56d364;">v3.3</div>
+            <div id="outdatedBatLatestVer" style="font-size:15px; font-weight:bold; color:#56d364;">v3.4</div>
           </div>
         </div>
       </div>
@@ -28373,10 +28808,11 @@ function setOutdatedBatNoticeLang(lang) {
       <div id="outdatedBatVi" style="display:block;">
         
         <div style="background:#161b22; border:1px solid #30363d; border-radius:10px; padding:15px; margin-bottom:14px;">
-          <b style="color:#58a6ff; font-size:14px;">🌟 Các tính năng mới &amp; Bản sửa lỗi quan trọng trong bản v3.3:</b>
+          <b style="color:#58a6ff; font-size:14px;">🌟 Các tính năng mới &amp; Bản sửa lỗi quan trọng trong bản v3.4:</b>
           <ul style="margin:8px 0 0 0; padding-left:20px; font-size:12.5px; color:#c9d1d9; line-height:1.7;">
+            <li><b>🐉 Ghi nhận chuẩn 100% Sát Thương &amp; Chi tiết Skill Boss Thế Giới / Đột Kích:</b> Bắt trực tiếp sát thương thực tế từng trận đánh (kể cả không phá kỷ lục cũ) cùng tỷ lệ sát thương từng skill theo thời gian thực!</li>
+            <li><b>⏱️ Đồng hồ đếm ngược Event Boss Thế Giới &amp; Đột Kích:</b> Đếm ngược thời gian thực kết thúc Boss Thế Giới (chu kỳ 4 ngày) và thời gian mở Đột Kích (chu kỳ 3 ngày).</li>
             <li><b>🔄 Tự động kết nối lại (Auto-reconnect 30s):</b> Tự động bấm thử lại/kết nối lại khi bị rớt mạng hoặc xuất hiện popup lỗi mạng, không lo đứt quãng khi AFK!</li>
-            <li><b>⏱️ Sửa lỗi treo lịch sử Ải &amp; Treo thời gian (2204.9s):</b> Tự động nhận diện chu kỳ lặp ải khi cắm AFK (Hell 2-6, Ác Mộng,...), cập nhật lịch sử ải liên tục không bị đơ!</li>
             <li><b>🛡️ Lò Rèn &amp; Kho Ngọc Tier 3:</b> Hỗ trợ tự động ghép ngọc và cất đồ Tier 3 chuẩn xác, an toàn tuyệt đối.</li>
           </ul>
         </div>
@@ -28394,10 +28830,11 @@ function setOutdatedBatNoticeLang(lang) {
       <div id="outdatedBatEn" style="display:none;">
         
         <div style="background:#161b22; border:1px solid #30363d; border-radius:10px; padding:15px; margin-bottom:14px;">
-          <b style="color:#58a6ff; font-size:14px;">🌟 New Features &amp; Critical Bug Fixes in v3.3:</b>
+          <b style="color:#58a6ff; font-size:14px;">🌟 New Features &amp; Critical Bug Fixes in v3.4:</b>
           <ul style="margin:8px 0 0 0; padding-left:20px; font-size:12.5px; color:#c9d1d9; line-height:1.7;">
+            <li><b>🐉 100% Accurate World Boss &amp; Raid DPS Tracking:</b> Direct capture of true per-match damage and live skill damage breakdown for every battle!</li>
+            <li><b>⏱️ Real-time Event Countdowns:</b> Live countdown timers for World Boss remaining time (4-day cycle) and Raid opening time (3-day cycle).</li>
             <li><b>🔄 Auto-Reconnect (30s cooldown):</b> Automatically detects disconnect and network error popups, clicking retry/reconnect to keep your AFK farming uninterrupted!</li>
-            <li><b>⏱️ Fixed Stage Loop Hang &amp; Duration Freeze (2204.9s):</b> Accurately recognizes stage repeating cycles during idle farming and logs each run properly without freezing.</li>
             <li><b>🛡️ Auto-Forge &amp; Tier 3 Jewel/Storage Engine:</b> Full automated fusion and deposit support for Tier 3 items and jewels.</li>
           </ul>
         </div>
