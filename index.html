@@ -1018,7 +1018,7 @@ body {
   </div>
 
   <!-- BANNER THÔNG BÁO CẬP NHẬT LÒ RÈN & KHO NGỌC (Bilingual VI/EN) -->
-  <div id="jewelUpdateNoticeBanner" style="background: linear-gradient(90deg, rgba(88, 166, 255, 0.12) 0%, rgba(188, 140, 255, 0.12) 100%); border: 1px solid rgba(88, 166, 255, 0.35); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);">
+  <div id="jewelUpdateNoticeBanner" style="background: linear-gradient(90deg, rgba(88, 166, 255, 0.12) 0%, rgba(188, 140, 255, 0.12) 100%); border: 1px solid rgba(88, 166, 255, 0.35); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);">
     <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 280px;">
       <span style="font-size: 26px; line-height: 1;">📢</span>
       <div>
@@ -16490,6 +16490,10 @@ function pollLiveGame() {
             scheduleNextPoll(100);
             return;
           } else if (data && data.nickname) {
+            data.launcherVersion = data.launcherVersion || '3.4';
+            data.hookVersion = data.hookVersion || '3.4';
+            data.bridgeVersion = data.bridgeVersion || '3.4';
+            data.isLiveConnected = true;
             applyLiveGameData(data);
             updateLiveSyncStatus('online');
             handleLiveGameConnected();
@@ -18314,7 +18318,11 @@ function sendEvaluatePoll() {
               live: true
             };
           } catch (e) { return null; }
-        })()
+        })(),
+        launcherVersion: '3.4',
+        hookVersion: '3.4',
+        bridgeVersion: '3.4',
+        isLiveConnected: true
       });
     } catch(err) {
       return JSON.stringify({ error: err.toString() });
@@ -18341,6 +18349,12 @@ function sendEvaluatePoll() {
 
 function applyLiveGameData(data) {
   if (!data) return;
+  if (!data.launcherVersion && !data.hookVersion && !data.bridgeVersion && (window.isGameLiveSynced || data.nickname)) {
+    data.launcherVersion = '3.4';
+    data.hookVersion = '3.4';
+    data.bridgeVersion = '3.4';
+    data.isLiveConnected = true;
+  }
   if (typeof checkOutdatedBatLauncher === 'function') {
     checkOutdatedBatLauncher(data);
   }
@@ -19092,6 +19106,88 @@ function getAreaIcon(areaName) {
   return '🏞️';
 }
 
+function calculateEffectiveStageExp(s, stats, customBuffPct) {
+  if (!s) return { totalExp: 0, clearExp: 0, bossExp: 0, bonusExp: 0, bonusPct: 0, monsterBonus: 0, bossBonus: 0 };
+  const baseClear = Number(s.clear_exp !== undefined ? s.clear_exp : Math.round((s.total_exp || 0) * (2 / 3)));
+  const baseBoss = Number(s.boss_exp !== undefined ? s.boss_exp : Math.round((s.total_exp || 0) * (1 / 3)));
+  const baseTotal = Number(s.total_exp || (baseClear + baseBoss));
+  const mobCount = Number(s.boss_req_mobs || 50);
+
+  const st = stats || (typeof userProfile !== 'undefined' && userProfile && userProfile.stats) || (typeof lastProfileData !== 'undefined' && lastProfileData && lastProfileData.stats) || (typeof window !== 'undefined' && window.lastProfileData && window.lastProfileData.stats) || {};
+  const hasDedicatedFlat = (st.monsterExpFlat !== undefined || st.bossExpFlat !== undefined || st.monsterExpBonusPct !== undefined);
+  let mPct = 0, bPct = 0, mFlat = 0, bFlat = 0;
+  if (hasDedicatedFlat) {
+    mPct = Number(st.monsterExpBonusPct !== undefined ? st.monsterExpBonusPct : (st.monsterExpBonus || 0));
+    bPct = Number(st.bossExpBonusPct !== undefined ? st.bossExpBonusPct : (st.bossExpBonus || 0));
+    mFlat = Number(st.monsterExpFlat || 0);
+    bFlat = Number(st.bossExpFlat || 0);
+  } else {
+    mPct = Number(st.monsterExpBonus || 0);
+    bPct = Number(st.bossExpBonus || 0);
+  }
+  const custom = Number(customBuffPct || 0);
+
+  const effClear = Math.round((baseClear + (mobCount * mFlat)) * (1 + (mPct + custom) / 100));
+  const effBoss = Math.round((baseBoss + bFlat) * (1 + (bPct + custom) / 100));
+  let effTotal = effClear + effBoss;
+
+  const bonusExp = Math.max(0, effTotal - baseTotal);
+  const bonusPct = baseTotal > 0 ? Math.round((bonusExp / baseTotal) * 100) : 0;
+
+  return {
+    baseTotal: baseTotal,
+    totalExp: effTotal,
+    clearExp: effClear,
+    bossExp: effBoss,
+    bonusExp: bonusExp,
+    bonusPct: bonusPct,
+    monsterBonus: mPct,
+    bossBonus: bPct
+  };
+}
+if (typeof window !== 'undefined') window.calculateEffectiveStageExp = calculateEffectiveStageExp;
+
+function calculateEffectiveStageGold(s, stats, customBuffPct) {
+  if (!s) return { totalGold: 0, clearGold: 0, bossGold: 0, bonusGold: 0, bonusPct: 0, monsterBonus: 0, bossBonus: 0 };
+  const baseClear = Number(s.clear_gold !== undefined ? s.clear_gold : Math.round((s.total_gold || 0) * (2 / 3)));
+  const baseBoss = Number(s.boss_gold !== undefined ? s.boss_gold : Math.round((s.total_gold || 0) * (1 / 3)));
+  const baseTotal = Number(s.total_gold || (baseClear + baseBoss));
+  const mobCount = Number(s.boss_req_mobs || 50);
+
+  const st = stats || (typeof userProfile !== 'undefined' && userProfile && userProfile.stats) || (typeof lastProfileData !== 'undefined' && lastProfileData && lastProfileData.stats) || (typeof window !== 'undefined' && window.lastProfileData && window.lastProfileData.stats) || {};
+  const hasDedicatedFlat = (st.monsterGoldFlat !== undefined || st.bossGoldFlat !== undefined || st.monsterGoldBonusPct !== undefined);
+  let mPct = 0, bPct = 0, mFlat = 0, bFlat = 0;
+  if (hasDedicatedFlat) {
+    mPct = Number(st.monsterGoldBonusPct !== undefined ? st.monsterGoldBonusPct : (st.monsterGoldBonus || 0));
+    bPct = Number(st.bossGoldBonusPct !== undefined ? st.bossGoldBonusPct : (st.bossGoldBonus || 0));
+    mFlat = Number(st.monsterGoldFlat || 0);
+    bFlat = Number(st.bossGoldFlat || 0);
+  } else {
+    mPct = Number(st.monsterGoldBonus || 0);
+    bPct = Number(st.bossGoldBonus || 0);
+  }
+  const custom = Number(customBuffPct || 0);
+
+  const effClear = Math.round((baseClear + (mobCount * mFlat)) * (1 + (mPct + custom) / 100));
+  const effBoss = Math.round((baseBoss + bFlat) * (1 + (bPct + custom) / 100));
+  let effTotal = effClear + effBoss;
+
+  const bonusGold = Math.max(0, effTotal - baseTotal);
+  const bonusPct = baseTotal > 0 ? Math.round((bonusGold / baseTotal) * 100) : 0;
+
+  return {
+    baseTotal: baseTotal,
+    totalGold: effTotal,
+    clearGold: effClear,
+    bossGold: effBoss,
+    bonusGold: bonusGold,
+    bonusPct: bonusPct,
+    monsterBonus: mPct,
+    bossBonus: bPct
+  };
+}
+if (typeof window !== 'undefined') window.calculateEffectiveStageGold = calculateEffectiveStageGold;
+
 function buildStageRankingFromHistory(history, stageDataList) {
   const validRuns = (history || []).filter(r => r && r.status === 'success' && !r.isPartial && r.duration >= 6.0);
   const stageGroups = new Map();
@@ -19115,13 +19211,15 @@ function buildStageRankingFromHistory(history, stageDataList) {
       total_hp: 500000
     };
 
+    const expRes = calculateEffectiveStageExp(s);
+    const goldRes = calculateEffectiveStageGold(s);
     const count = runs.length;
     const avgSec = runs.reduce((acc, cur) => acc + cur.duration, 0) / count;
     const minSec = Math.min(...runs.map(r => r.duration));
-    const calcGps = s.total_gold / avgSec;
+    const calcGps = goldRes.totalGold / avgSec;
     const calcGpm = calcGps * 60;
-    const calcEps = (s.total_exp || 0) / avgSec;
-    const goldHp = s.total_hp > 0 ? (s.total_gold / s.total_hp) : 0;
+    const calcEps = expRes.totalExp / avgSec;
+    const goldHp = s.total_hp > 0 ? (goldRes.totalGold / s.total_hp) : 0;
 
     result.push({
       ...s,
@@ -19222,11 +19320,13 @@ function renderStageTable() {
       const hasHist = historyMap.has(s.stage_id);
       const histObj = hasHist ? historyMap.get(s.stage_id) : null;
       
+      const expRes = calculateEffectiveStageExp(s);
+      const goldRes = calculateEffectiveStageGold(s);
       const estSec = estimateStageClearTime(s, currentDps);
-      const gps = s.total_gold / estSec;
+      const gps = goldRes.totalGold / estSec;
       const gpm = gps * 60;
-      const eps = (s.total_exp || 0) / estSec;
-      const goldHp = s.total_hp > 0 ? (s.total_gold / s.total_hp) : 0;
+      const eps = expRes.totalExp / estSec;
+      const goldHp = s.total_hp > 0 ? (goldRes.totalGold / s.total_hp) : 0;
 
       // When user evaluates at real DPS, preserve exact measured historical run if available
       const useHistoryValues = hasHist && Math.abs(currentDps - (userProfile.combatStats?.realDps || 16637)) < 50;
@@ -19591,10 +19691,21 @@ function updateSpecialBattleHistoryFromGame(gameBattles) {
   for (let b of gameBattles) {
     if (!b || !b.battle_kind || !b.timestamp) continue;
     if (clearedAt > 0 && b.timestamp <= clearedAt) continue;
-    const exists = current.some(h => h.timestamp === b.timestamp || (h.field_id === b.field_id && Math.abs((h.timestamp || 0) - (b.timestamp || 0)) < 3000));
-    if (!exists) {
+    const existsIdx = current.findIndex(h => h.timestamp === b.timestamp || (h.battle_kind === b.battle_kind && (h.total_damage === b.total_damage || Math.abs(h.total_damage - b.total_damage) < 10) && Math.abs((h.timestamp || 0) - (b.timestamp || 0)) < 120000));
+    if (existsIdx === -1) {
       current.unshift(b);
       changed = true;
+    } else {
+      const ex = current[existsIdx];
+      // Merge richer breakdown if new object has it
+      if (b.skill_breakdown && Object.keys(b.skill_breakdown).length > 0 && (!ex.skill_breakdown || Object.keys(ex.skill_breakdown).length === 0)) {
+        ex.skill_breakdown = b.skill_breakdown;
+        changed = true;
+      }
+      if (b.total_damage && b.total_damage > ex.total_damage) {
+        ex.total_damage = b.total_damage;
+        changed = true;
+      }
     }
   }
   if (changed) {
@@ -19626,41 +19737,47 @@ function syncSpecialBattlesFromDungeonInfo(prof) {
   const lastTrackedWbCount = Number(localStorage.getItem('genesis_tracked_wb_playcount') || -1);
 
   if (wbCount > 0) {
-    const existingWb = current.find(b => b.battle_kind === 'worldboss');
-    const existingCount = existingWb ? Number(existingWb.play_count || 0) : 0;
     const isWbLdr = ldr && ldr.battle_kind === 'worldboss' && ldr.total_damage > 0;
     const finalWbDmg = isWbLdr ? ldr.total_damage : wbScore;
     const finalWbDur = isWbLdr ? ldr.duration : 60;
     const finalWbLv = isWbLdr ? ldr.boss_level : wbBossLv;
     const finalWbFId = isWbLdr ? ldr.field_id : wbFId;
 
-    const isNewWbMatch = (wbCount > existingCount) || (lastTrackedWbCount >= 0 && wbCount > lastTrackedWbCount) || (!existingWb && clearedAt === 0);
+    const existingWb = current.find(b => b.battle_kind === 'worldboss');
+    const existingCount = existingWb ? Number(existingWb.play_count || 0) : 0;
+    const duplicateWb = current.find(b => b.battle_kind === 'worldboss' && (b.total_damage === finalWbDmg || Math.abs(b.total_damage - finalWbDmg) < 10) && (Math.abs((b.timestamp || 0) - (isWbLdr && ldr.timestamp ? ldr.timestamp : Date.now())) < 120000));
 
-    if (isNewWbMatch) {
-      current.unshift({
-        battle_kind: 'worldboss',
-        field_id: finalWbFId,
-        boss_level: finalWbLv,
-        dungeon_type: 2,
-        total_damage: finalWbDmg,
-        duration: finalWbDur,
-        status: 'victory',
-        timestamp: (isWbLdr && ldr.timestamp) ? ldr.timestamp : Date.now(),
-        play_count: wbCount,
-        hero_class: (isWbLdr && ldr.hero_class) ? ldr.hero_class : (prof.heroClass || 'Ranged'),
-        hero_level: (isWbLdr && ldr.hero_level) ? ldr.hero_level : (prof.level || 52),
-        skill_breakdown: (isWbLdr && ldr.skill_breakdown) ? ldr.skill_breakdown : {}
-      });
+    if (duplicateWb) {
+      duplicateWb.play_count = wbCount;
+      duplicateWb.total_damage = finalWbDmg;
+      if (finalWbDur > 0) duplicateWb.duration = finalWbDur;
+      duplicateWb.boss_level = finalWbLv;
+      duplicateWb.field_id = finalWbFId;
+      if (isWbLdr && ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0) {
+        duplicateWb.skill_breakdown = ldr.skill_breakdown;
+      }
       changed = true;
       localStorage.setItem('genesis_tracked_wb_playcount', String(wbCount));
-    } else if (existingWb && isWbLdr && (existingWb.total_damage !== finalWbDmg || existingWb.duration !== finalWbDur || (ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0 && (!existingWb.skill_breakdown || Object.keys(existingWb.skill_breakdown).length === 0)))) {
-      existingWb.total_damage = finalWbDmg;
-      existingWb.duration = finalWbDur;
-      existingWb.boss_level = finalWbLv;
-      existingWb.field_id = finalWbFId;
-      if (ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0) existingWb.skill_breakdown = ldr.skill_breakdown;
-      if (ldr.timestamp) existingWb.timestamp = ldr.timestamp;
-      changed = true;
+    } else {
+      const isNewWbMatch = (wbCount > existingCount) || (lastTrackedWbCount >= 0 && wbCount > lastTrackedWbCount) || (!existingWb && clearedAt === 0);
+      if (isNewWbMatch) {
+        current.unshift({
+          battle_kind: 'worldboss',
+          field_id: finalWbFId,
+          boss_level: finalWbLv,
+          dungeon_type: 2,
+          total_damage: finalWbDmg,
+          duration: finalWbDur,
+          status: 'victory',
+          timestamp: (isWbLdr && ldr.timestamp) ? ldr.timestamp : Date.now(),
+          play_count: wbCount,
+          hero_class: (isWbLdr && ldr.hero_class) ? ldr.hero_class : (prof.heroClass || 'Ranged'),
+          hero_level: (isWbLdr && ldr.hero_level) ? ldr.hero_level : (prof.level || 52),
+          skill_breakdown: (isWbLdr && ldr.skill_breakdown) ? ldr.skill_breakdown : {}
+        });
+        changed = true;
+        localStorage.setItem('genesis_tracked_wb_playcount', String(wbCount));
+      }
     }
   }
 
@@ -19675,41 +19792,47 @@ function syncSpecialBattlesFromDungeonInfo(prof) {
   const lastTrackedRaidCount = Number(localStorage.getItem('genesis_tracked_raid_playcount') || -1);
 
   if (raidCount > 0) {
-    const existingRaid = current.find(b => b.battle_kind === 'raid');
-    const existingCount = existingRaid ? Number(existingRaid.play_count || 0) : 0;
     const isRaidLdr = ldr && ldr.battle_kind === 'raid' && ldr.total_damage > 0;
     const finalRaidDmg = isRaidLdr ? ldr.total_damage : raidScore;
     const finalRaidDur = isRaidLdr ? ldr.duration : 60;
     const finalRaidLv = isRaidLdr ? ldr.boss_level : raidBossLv;
     const finalRaidFId = isRaidLdr ? ldr.field_id : raidFId;
 
-    const isNewRaidMatch = (raidCount > existingCount) || (lastTrackedRaidCount >= 0 && raidCount > lastTrackedRaidCount) || (!existingRaid && clearedAt === 0);
+    const existingRaid = current.find(b => b.battle_kind === 'raid');
+    const existingCount = existingRaid ? Number(existingRaid.play_count || 0) : 0;
+    const duplicateRaid = current.find(b => b.battle_kind === 'raid' && (b.total_damage === finalRaidDmg || Math.abs(b.total_damage - finalRaidDmg) < 10) && (Math.abs((b.timestamp || 0) - (isRaidLdr && ldr.timestamp ? ldr.timestamp : Date.now())) < 120000));
 
-    if (isNewRaidMatch) {
-      current.unshift({
-        battle_kind: 'raid',
-        field_id: finalRaidFId,
-        boss_level: finalRaidLv,
-        dungeon_type: 3,
-        total_damage: finalRaidDmg,
-        duration: finalRaidDur,
-        status: 'victory',
-        timestamp: (isRaidLdr && ldr.timestamp) ? ldr.timestamp : Date.now(),
-        play_count: raidCount,
-        hero_class: (isRaidLdr && ldr.hero_class) ? ldr.hero_class : (prof.heroClass || 'Ranged'),
-        hero_level: (isRaidLdr && ldr.hero_level) ? ldr.hero_level : (prof.level || 52),
-        skill_breakdown: (isRaidLdr && ldr.skill_breakdown) ? ldr.skill_breakdown : {}
-      });
+    if (duplicateRaid) {
+      duplicateRaid.play_count = raidCount;
+      duplicateRaid.total_damage = finalRaidDmg;
+      if (finalRaidDur > 0) duplicateRaid.duration = finalRaidDur;
+      duplicateRaid.boss_level = finalRaidLv;
+      duplicateRaid.field_id = finalRaidFId;
+      if (isRaidLdr && ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0) {
+        duplicateRaid.skill_breakdown = ldr.skill_breakdown;
+      }
       changed = true;
       localStorage.setItem('genesis_tracked_raid_playcount', String(raidCount));
-    } else if (existingRaid && isRaidLdr && (existingRaid.total_damage !== finalRaidDmg || existingRaid.duration !== finalRaidDur || (ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0 && (!existingRaid.skill_breakdown || Object.keys(existingRaid.skill_breakdown).length === 0)))) {
-      existingRaid.total_damage = finalRaidDmg;
-      existingRaid.duration = finalRaidDur;
-      existingRaid.boss_level = finalRaidLv;
-      existingRaid.field_id = finalRaidFId;
-      if (ldr.skill_breakdown && Object.keys(ldr.skill_breakdown).length > 0) existingRaid.skill_breakdown = ldr.skill_breakdown;
-      if (ldr.timestamp) existingRaid.timestamp = ldr.timestamp;
-      changed = true;
+    } else {
+      const isNewRaidMatch = (raidCount > existingCount) || (lastTrackedRaidCount >= 0 && raidCount > lastTrackedRaidCount) || (!existingRaid && clearedAt === 0);
+      if (isNewRaidMatch) {
+        current.unshift({
+          battle_kind: 'raid',
+          field_id: finalRaidFId,
+          boss_level: finalRaidLv,
+          dungeon_type: 3,
+          total_damage: finalRaidDmg,
+          duration: finalRaidDur,
+          status: 'victory',
+          timestamp: (isRaidLdr && ldr.timestamp) ? ldr.timestamp : Date.now(),
+          play_count: raidCount,
+          hero_class: (isRaidLdr && ldr.hero_class) ? ldr.hero_class : (prof.heroClass || 'Ranged'),
+          hero_level: (isRaidLdr && ldr.hero_level) ? ldr.hero_level : (prof.level || 52),
+          skill_breakdown: (isRaidLdr && ldr.skill_breakdown) ? ldr.skill_breakdown : {}
+        });
+        changed = true;
+        localStorage.setItem('genesis_tracked_raid_playcount', String(raidCount));
+      }
     }
   }
 
@@ -20086,8 +20209,9 @@ function renderSpecialBattlesTable(btn) {
     const cls = clsNames[b.hero_class] || (b.hero_class ? b.hero_class : '—');
     const dps = fmtSpecialBattleDps(b);
     const dpsText = dps > 0 ? ('<div style="font-size:11px; color:#8b949e;">⚡ ~' + dps.toLocaleString() + ' /s</div>') : '';
-    const bossLvBadge = b.boss_level ? (' <span style="font-size:10.5px; background:rgba(88,166,255,0.15); border:1px solid rgba(88,166,255,0.4); color:#58a6ff; padding:1px 5px; border-radius:4px; font-weight:bold;">Lv.' + b.boss_level + '</span>') : '';
-    const tierBadge = (b.field_id && b.field_id >= 700000 && b.field_id < 800000) ? (' <span style="font-size:10.5px; background:rgba(227,179,65,0.15); border:1px solid rgba(227,179,65,0.4); color:#e3b341; padding:1px 5px; border-radius:4px; font-weight:bold;">' + (isEn ? 'Level ' : 'Cấp ') + (b.field_id - 700000) + '</span>') : ((b.field_id && b.field_id >= 600000 && b.field_id < 700000) ? (' <span style="font-size:10.5px; background:rgba(88,166,255,0.15); border:1px solid rgba(88,166,255,0.4); color:#58a6ff; padding:1px 5px; border-radius:4px; font-weight:bold;">' + (isEn ? 'Level ' : 'Cấp ') + (b.field_id - 600000) + '</span>') : '');
+    const bossLv = b.boss_level || (b.field_id && b.field_id >= 700000 && b.field_id < 800000 ? (b.field_id - 700000) : ((b.field_id && b.field_id >= 600000 && b.field_id < 700000) ? (b.field_id - 600000) : null));
+    const bossLvBadge = bossLv ? (' <span style="font-size:10.5px; background:rgba(88,166,255,0.15); border:1px solid rgba(88,166,255,0.4); color:#58a6ff; padding:1px 5px; border-radius:4px; font-weight:bold;">' + (isEn ? 'Lv.' : 'Cấp ') + bossLv + '</span>') : '';
+    const tierBadge = '';
     const careerBadge = b.isCareerSummary ? (' <span style="font-size:10px; background:rgba(46,160,67,0.15); border:1px solid rgba(46,160,67,0.4); color:#7ee787; padding:1px 5px; border-radius:4px; font-weight:bold;">' + (isEn ? 'CAREER HIGH (' + b.play_count + 'x)' : 'KỶ LỤC (' + b.play_count + ' trận)') + '</span>') : '';
     return '<tr style="border-left:4px solid #f85149;">' +
       '<td style="text-align:center;"><span style="background:#21262d; border:1px solid #30363d; padding:3px 8px; border-radius:10px;">#' + (idx + 1) + '</span></td>' +
@@ -20211,6 +20335,82 @@ function buildSkillDpsRowsHtml(battle, heroClass, isEn) {
     }
     rows.push({ key: key, name: name, icon: icon, dmg: dmg, hits: hits, casts: casts, dps: dps, pct: pct, level: skillLv });
   }
+
+  let isSynthesized = false;
+  // Synthesize skill breakdown from deployed skills if battle record came from server summary without raw hit logs
+  if (rows.length === 0 && battle && Number(battle.total_damage) > 0) {
+    isSynthesized = true;
+    const totDmg = Math.round(Number(battle.total_damage));
+    const dur = Math.max(1, Number(battle.duration || 60));
+    let skillsToUse = [];
+    if (typeof userProfile !== 'undefined' && Array.isArray(userProfile.deployedSkills) && userProfile.deployedSkills.length > 0) {
+      skillsToUse = [...userProfile.deployedSkills];
+    } else {
+      const hClass = heroClass || (battle ? battle.hero_class : 'Ranged');
+      if (hClass === 'Melee') skillsToUse = [8101010, 8102010, 8103010, 8104010, 8108010, 8109010];
+      else if (hClass === 'Mage') skillsToUse = [8301010, 8302010, 8303010, 8308010, 8309010, 8304010];
+      else skillsToUse = [8201010, 8202010, 8208010, 8209010, 8210010, 8211010];
+    }
+
+    const items = [];
+    const normCasts = Math.max(1, Math.round(dur * 1.2));
+    const normHit = (typeof calcWikiDamage === 'function')
+      ? (calcWikiDamage({ damageRate: 100, attackerAtk: (typeof userProfile !== 'undefined' && userProfile.stats && userProfile.stats.finalAttack) ? userProfile.stats.finalAttack : 3000, targetDef: 300 })?.expectedHit || 1000)
+      : 1000;
+    const normWeight = Math.max(1, normHit * normCasts * 0.4);
+    items.push({ key: '2000', casts: normCasts, hits: normCasts, level: null, weight: normWeight });
+
+    for (let i = 0; i < skillsToUse.length; i++) {
+      const skId = skillsToUse[i];
+      let sLv = 10;
+      if (typeof userProfile !== 'undefined' && userProfile.liveSkillLevels && userProfile.liveSkillLevels[skId]) {
+        sLv = userProfile.liveSkillLevels[skId].level || 10;
+      } else if (typeof skillAllocations !== 'undefined' && skillAllocations[skId]) {
+        sLv = skillAllocations[skId] || 10;
+      }
+      const sCasts = Math.max(1, Math.floor(dur / 22));
+      const mult = 250 + (sLv * 20);
+      const sHit = (typeof calcWikiDamage === 'function')
+        ? (calcWikiDamage({ damageRate: mult, attackerAtk: (typeof userProfile !== 'undefined' && userProfile.stats && userProfile.stats.finalAttack) ? userProfile.stats.finalAttack : 3000, targetDef: 300 })?.expectedHit || (mult * 10))
+        : (mult * 10);
+      const sWeight = Math.max(1, sHit * sCasts);
+      items.push({ key: skId, casts: sCasts, hits: sCasts, level: sLv, weight: sWeight });
+    }
+
+    const totalWeight = items.reduce((sum, it) => sum + it.weight, 0);
+    let assignedDmg = 0;
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      let dmg = (i === items.length - 1)
+        ? (totDmg - assignedDmg)
+        : Math.round(totDmg * (it.weight / totalWeight));
+      if (dmg < 0) dmg = 0;
+      assignedDmg += dmg;
+      const dps = dur > 0 ? Math.round(dmg / dur) : 0;
+      const pct = totDmg > 0 ? (dmg / totDmg * 100) : 0;
+      let name, icon;
+      if (String(it.key) === '2000') {
+        name = isEn ? 'Normal Attack' : 'Đòn Đánh Thường';
+        icon = null;
+      } else {
+        const meta = getSkillMeta(Number(it.key), heroClass || (battle ? battle.hero_class : null));
+        if (meta) { name = meta.name; icon = meta.icon; }
+        else { name = (isEn ? 'Skill ' : 'Chiêu ') + it.key; }
+      }
+      rows.push({
+        key: it.key,
+        name: name,
+        icon: icon,
+        dmg: dmg,
+        hits: it.hits,
+        casts: it.casts,
+        dps: dps,
+        pct: pct,
+        level: it.level
+      });
+    }
+  }
+
   // Sort descending by damage
   rows.sort(function(a, b) { return b.dmg - a.dmg; });
   if (rows.length === 0) {
@@ -20238,7 +20438,7 @@ function buildSkillDpsRowsHtml(battle, heroClass, isEn) {
       '</td></tr>';
   }
   const barColors = ['#f85149', '#ffa657', '#e3b341', '#7ee787', '#58a6ff', '#bc8cff'];
-  return rows.map(function(r, i) {
+  const rowsHtml = rows.map(function(r, i) {
     const iconSrc = (typeof skillIconsBase64 !== 'undefined' && r.icon && skillIconsBase64[r.icon]) ? skillIconsBase64[r.icon] : null;
     const iconHtml = iconSrc
       ? ('<img src="' + iconSrc + '" style="width:38px;height:38px;vertical-align:middle;margin-right:10px;border-radius:6px;border:1px solid #30363d;object-fit:cover;" onerror="this.outerHTML=\'<span style=&quot;font-size:26px;margin-right:10px&quot;>✨</span>\'">')
@@ -20254,6 +20454,8 @@ function buildSkillDpsRowsHtml(battle, heroClass, isEn) {
       '<td style="padding:10px 12px; width:34%;"><div style="display:flex; align-items:center; gap:8px;"><div style="flex:1; height:14px; background:#0d1117; border-radius:7px; overflow:hidden; border:1px solid #30363d;"><div style="height:100%; background:linear-gradient(90deg,' + barColor + ',' + barColor + '88); width:' + r.pct.toFixed(1) + '%;"></div></div><span style="color:' + barColor + '; font-weight:bold; font-size:13.5px; min-width:52px; text-align:right;">' + r.pct.toFixed(1) + '%</span></div></td>' +
       '</tr>';
   }).join('');
+  const footerNote = isSynthesized ? ('<tr><td colspan="4" style="text-align:center; padding:10px 12px; font-size:12px; color:#8b949e; background:rgba(22,27,34,0.4); border-top:1px solid #30363d;">' + (isEn ? '💡 Estimated from Server summary • Run LiveSync to record 100% individual skill hits' : '💡 Ước tính từ kỷ lục tổng kết server • Bật LiveSync để ghi nhận 100% chi tiết từng đòn đánh trực tiếp') + '</td></tr>') : '';
+  return rowsHtml + footerNote;
 }
 
 function openSpecialBattleDetail(index) {
@@ -20277,7 +20479,7 @@ function openSpecialBattleDetail(index) {
   
   let bossLvBox = '';
   if (b.boss_level) {
-    bossLvBox = '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#58a6ff;">' + (isEn ? 'Boss Level Reached' : 'Cấp Boss Đạt Được') + '</div><div style="font-size:18px; font-weight:bold; color:#58a6ff;">⭐ Lv. ' + b.boss_level + '</div></div>';
+    bossLvBox = '<div style="background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:12px;"><div style="font-size:11px; color:#58a6ff;">' + (isEn ? 'Boss Level Reached' : 'Mốc Boss Đạt Được') + '</div><div style="font-size:18px; font-weight:bold; color:#58a6ff;">⭐ ' + (isEn ? 'Level ' : 'Cấp ') + b.boss_level + '</div></div>';
   }
 
   let timeBox = '';
@@ -20438,10 +20640,12 @@ function renderStageHistoryTable(btn) {
       boss_exp: 2500,
       total_hp: 500000
     };
+    const expRes = calculateEffectiveStageExp(ls);
+    const goldRes = calculateEffectiveStageGold(ls);
     const dur = Math.max(0.1, lr.duration || 1);
-    const liveGps = ls.total_gold / dur;
+    const liveGps = goldRes.totalGold / dur;
     const liveGpm = liveGps * 60;
-    const liveEps = (ls.total_exp || 0) / dur;
+    const liveEps = expRes.totalExp / dur;
     const stageLabel = isEn ? (translateStageTag(ls.display_tag) || ('Stage ' + ls.stage_id)) : (ls.display_tag || ('Ải ' + ls.stage_id));
     const areaName = (isEn && ls.area_name === 'Chiến Trường') ? 'Battlefield' : ls.area_name;
     const areaIcon = typeof getAreaIcon === 'function' ? getAreaIcon(ls.area_name) : '🗺️';
@@ -20454,8 +20658,8 @@ function renderStageHistoryTable(btn) {
       '<td style="color:#e3b341; font-weight:bold; font-size:13.5px;">💰 ' + liveGps.toFixed(2) + ' /s</td>' +
       '<td style="color:#bc8cff; font-weight:bold; font-size:13.5px;">📈 ' + liveEps.toFixed(2) + ' /s</td>' +
       '<td style="color:#f2cc60; font-weight:600;">🪙 ' + Math.round(liveGpm).toLocaleString() + ' /m</td>' +
-      '<td><b>' + Number(ls.total_gold).toLocaleString() + ' 💰</b><br><span style="font-size:11px; color:#8b949e;">(' + (isEn ? 'Stage' : 'Ải') + ': ' + Number(ls.clear_gold).toLocaleString() + ' + Boss: ' + Number(ls.boss_gold).toLocaleString() + ')</span></td>' +
-      '<td><b>' + Number(ls.total_exp || 0).toLocaleString() + ' ⭐</b><br><span style="font-size:11px; color:#8b949e;">(' + (isEn ? 'Stage' : 'Ải') + ': ' + Number(ls.clear_exp || 0).toLocaleString() + ' + Boss: ' + Number(ls.boss_exp || 0).toLocaleString() + ')</span></td>' +
+      '<td><b>' + Number(goldRes.totalGold).toLocaleString() + ' 💰</b><br><span style="font-size:11px; color:#8b949e;">(' + (isEn ? 'Stage' : 'Ải') + ': ' + Number(goldRes.clearGold).toLocaleString() + ' + Boss: ' + Number(goldRes.bossGold).toLocaleString() + ')</span></td>' +
+      '<td><b>' + Number(expRes.totalExp).toLocaleString() + ' ⭐</b><br><span style="font-size:11px; color:#8b949e;">(' + (isEn ? 'Stage' : 'Ải') + ': ' + Number(expRes.clearExp).toLocaleString() + ' + Boss: ' + Number(expRes.bossExp).toLocaleString() + ')</span></td>' +
       '<td style="color:#7ee787; font-weight:bold;">⏱️ ' + dur.toFixed(1) + 's <span style="font-size:11px; color:#8b949e;">' + (isEn ? '(farming...)' : '(đang đánh...)') + '</span></td>' +
       '<td>❤️ ' + Number(Math.round(ls.total_hp)).toLocaleString() + ' HP</td>' +
       '<td style="text-align:center;"><span style="color:#e3b341; font-weight:bold; font-size:12.5px; background:rgba(227, 179, 65, 0.2); border:1px solid #e3b341; padding:3px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;">' + (isEn ? '⚔️ Running' : '⚔️ Đang chạy') + '</span></td>' +
@@ -20479,10 +20683,14 @@ function renderStageHistoryTable(btn) {
     const stageLabel = isEn ? (translateStageTag(s.display_tag) || ('Stage ' + s.stage_id)) : (s.display_tag || ('Ải ' + s.stage_id));
     const areaName = (isEn && s.area_name === 'Chiến Trường') ? 'Battlefield' : s.area_name;
     const areaIcon = typeof getAreaIcon === 'function' ? getAreaIcon(s.area_name) : '🗺️';
+    const expRes = calculateEffectiveStageExp(s);
+    const goldRes = calculateEffectiveStageGold(s);
     const dur = r.duration > 0 ? r.duration : estimateStageClearTime(s, currentDps);
-    const calcGps = s.total_gold / dur;
+    const calcGps = goldRes.totalGold / dur;
     const calcGpm = calcGps * 60;
-    const calcEps = (s.total_exp || 0) / dur;
+    const calcEps = expRes.totalExp / dur;
+
+
 
     // Formatting according to user request:
     // Ải fail -> đỏ (FAILED)
@@ -20510,8 +20718,8 @@ function renderStageHistoryTable(btn) {
       '<td style="color:#e3b341; font-weight:bold; font-size:13.5px;">💰 ' + calcGps.toFixed(2) + ' /s</td>' +
       '<td style="color:#bc8cff; font-weight:bold; font-size:13.5px;">📈 ' + calcEps.toFixed(2) + ' /s</td>' +
       '<td style="color:#f2cc60; font-weight:600;">🪙 ' + Math.round(calcGpm).toLocaleString() + ' /m</td>' +
-      '<td><b>' + Number(s.total_gold).toLocaleString() + ' 💰</b><br><span style="font-size:11px; color:#8b949e;">(' + (isEn ? 'Stage' : 'Ải') + ': ' + Number(s.clear_gold).toLocaleString() + ' + Boss: ' + Number(s.boss_gold).toLocaleString() + ')</span></td>' +
-      '<td><b>' + Number(s.total_exp || 0).toLocaleString() + ' ⭐</b><br><span style="font-size:11px; color:#8b949e;">(' + (isEn ? 'Stage' : 'Ải') + ': ' + Number(s.clear_exp || 0).toLocaleString() + ' + Boss: ' + Number(s.boss_exp || 0).toLocaleString() + ')</span></td>' +
+      '<td><b>' + Number(goldRes.totalGold).toLocaleString() + ' 💰</b><br><span style="font-size:11px; color:#8b949e;">(' + (isEn ? 'Stage' : 'Ải') + ': ' + Number(goldRes.clearGold).toLocaleString() + ' + Boss: ' + Number(goldRes.bossGold).toLocaleString() + ')</span></td>' +
+      '<td><b>' + Number(expRes.totalExp).toLocaleString() + ' ⭐</b><br><span style="font-size:11px; color:#8b949e;">(' + (isEn ? 'Stage' : 'Ải') + ': ' + Number(expRes.clearExp).toLocaleString() + ' + Boss: ' + Number(expRes.bossExp).toLocaleString() + ')</span></td>' +
       '<td>⏱️ ' + dur.toFixed(1) + 's</td>' +
       '<td>❤️ ' + Number(Math.round(s.total_hp)).toLocaleString() + ' HP</td>' +
       '<td style="text-align:center;">' + statusBadge + '</td>' +
@@ -23110,19 +23318,25 @@ function dismissJewelNoticeBanner() {
     bannerEl.style.display = 'none';
   }
   try {
-    localStorage.setItem('genesis_jewel_notice_dismissed', 'v3.2');
+    localStorage.setItem('genesis_jewel_notice_dismissed', 'v3.4');
   } catch(e) {}
 }
 
 function updateJewelNoticeBanner(lang) {
   try {
     const dismissed = localStorage.getItem('genesis_jewel_notice_dismissed');
-    if (dismissed === 'v3.2' || dismissed === 'true') {
+    if (dismissed === 'v3.2' || dismissed === 'v3.4' || dismissed === 'true') {
       const bannerEl = document.getElementById('jewelUpdateNoticeBanner');
       if (bannerEl) bannerEl.style.display = 'none';
       return;
     }
   } catch(e) {}
+
+  if (window.isGameLiveSynced || (window.GenesisGameBridge && window.GenesisGameBridge.isConnected)) {
+    const bannerEl = document.getElementById('jewelUpdateNoticeBanner');
+    if (bannerEl) bannerEl.style.display = 'none';
+    return;
+  }
 
   if (!lang) {
     try {
@@ -23133,9 +23347,19 @@ function updateJewelNoticeBanner(lang) {
   }
   const isEn = (lang !== 'vi');
 
-  const bannerEl = document.getElementById('jewelUpdateNoticeBanner');
-  if (bannerEl) {
-    bannerEl.style.display = 'flex';
+  // Delay showing the banner so the WS connection (1s startup + 2s poll ≈ 3s) has time to succeed.
+  // If live sync connects in time, the banner will be suppressed automatically.
+  if (!window.__jewelBannerShowPending) {
+    window.__jewelBannerShowPending = true;
+    setTimeout(function() {
+      window.__jewelBannerShowPending = false;
+      if (window.isGameLiveSynced || (window.GenesisGameBridge && window.GenesisGameBridge.isConnected)) return;
+      try { if (localStorage.getItem('genesis_jewel_notice_dismissed') === 'v3.4') return; } catch(e) {}
+      try { if (localStorage.getItem('genesis_jewel_notice_dismissed') === 'v3.2') return; } catch(e) {}
+      try { if (localStorage.getItem('genesis_jewel_notice_dismissed') === 'true') return; } catch(e) {}
+      const el = document.getElementById('jewelUpdateNoticeBanner');
+      if (el) el.style.display = 'flex';
+    }, 4000);
   }
 
   const badgeEl = document.getElementById('jewelNoticeBadge');
@@ -28041,6 +28265,10 @@ window.GenesisGameBridge = {
           deployedSkills: deployedSkills,
           systemsData: systemsData,
           altarLevel: altarLevel,
+          launcherVersion: '3.4',
+          hookVersion: '3.4',
+          bridgeVersion: '3.4',
+          isLiveConnected: true,
           exportedAt: new Date().toISOString()
         });
       } catch(e) {
@@ -28057,6 +28285,10 @@ window.GenesisGameBridge = {
 
   applyLiveProfile: function(data) {
     if (!data) return;
+    data.launcherVersion = data.launcherVersion || '3.4';
+    data.hookVersion = data.hookVersion || '3.4';
+    data.bridgeVersion = data.bridgeVersion || '3.4';
+    data.isLiveConnected = true;
     const highestTid = Number(data.clearStageTid || data.stageTid || (window.userSaveProfile && (window.userSaveProfile.clearStageTid || window.userSaveProfile.stageTid)) || 14410);
     if (!data.clearStageTid && highestTid) data.clearStageTid = highestTid;
     if (typeof resolveStageDisplayName === 'function') {
@@ -28416,14 +28648,7 @@ function setUpdateNoticeLang(lang) {
 }
 
 function checkAndShowUpdateNotice() {
-  try {
-    const isDismissed = localStorage.getItem('genesis_update_notice_dismissed_v34') || localStorage.getItem('genesis_update_notice_dismissed_v20260920');
-    if (!isDismissed) {
-      setTimeout(function() {
-        openUpdateNoticeModal();
-      }, 700);
-    }
-  } catch(e) {}
+  // Silent on startup: users can click the "📢 Thông Báo Cập Nhật" button in the top navigation bar at any time.
 }
 /* UPDATE_NOTICE_END */
 
@@ -28458,11 +28683,11 @@ function checkOutdatedBatLauncher(data) {
   if (!data.isLiveConnected && !data.nickname) return;
   if (window.__hasShownOutdatedBatNotice) return;
   try {
-    if (sessionStorage.getItem('genesis_outdated_bat_dismissed') === 'true') return;
+    if (sessionStorage.getItem('genesis_outdated_bat_dismissed') === 'true' || localStorage.getItem('genesis_outdated_bat_dismissed_v34') === 'true') return;
   } catch(e) {}
 
-  // If the currently running bridge or launcher is already >= latest, clean URL and never warn!
-  const currentRunningVer = data.bridgeVersion || data.launcherVersion || data.hookVersion;
+  // If the currently running bridge or launcher is already >= latest (or standard hook v3), clean URL and never warn!
+  const currentRunningVer = data.bridgeVersion || data.launcherVersion || data.hookVersion || (data.liveSyncSource === 'game_hook_v3' ? LATEST_BAT_LAUNCHER_VERSION : null);
   if (currentRunningVer && compareLauncherVersions(currentRunningVer, LATEST_BAT_LAUNCHER_VERSION) >= 0) {
     try {
       if (typeof window !== 'undefined' && window.location && window.history && window.history.replaceState) {
@@ -28490,18 +28715,22 @@ function checkOutdatedBatLauncher(data) {
   } catch(e) {}
 
   // 2. Check detected launcher or hook or bridge version
-  const detectedVer = data.launcherVersion || data.hookVersion || (data.liveSyncSource === 'game_hook_v3' && !data.hookVersion ? '3.4' : null);
+  const detectedVer = data.launcherVersion || data.hookVersion || (data.liveSyncSource === 'game_hook_v3' && !data.hookVersion ? LATEST_BAT_LAUNCHER_VERSION : null);
   if (isOutdatedBatVersion(detectedVer)) {
     window.__hasShownOutdatedBatNotice = true;
-    setTimeout(function() { openOutdatedBatModal(detectedVer || '3.4'); }, 400);
+    setTimeout(function() { openOutdatedBatModal(detectedVer || '3.2'); }, 400);
   }
 }
 
 function openOutdatedBatModal(detectedVer) {
+  // SAFETY GUARD: If detectedVer is already >= latest version, NEVER show outdated notice!
+  if (detectedVer && compareLauncherVersions(detectedVer, LATEST_BAT_LAUNCHER_VERSION) >= 0) {
+    return;
+  }
   const modal = document.getElementById('outdatedBatModal');
   if (!modal) return;
   const curEl = document.getElementById('outdatedBatCurrentVer');
-  if (curEl) curEl.textContent = detectedVer ? ('v' + detectedVer) : ('v' + LATEST_BAT_LAUNCHER_VERSION);
+  if (curEl) curEl.textContent = detectedVer ? ('v' + String(detectedVer).replace(/^v/i, '')) : 'v3.2';
   const latEl = document.getElementById('outdatedBatLatestVer');
   if (latEl) latEl.textContent = 'v' + LATEST_BAT_LAUNCHER_VERSION;
   
@@ -28514,6 +28743,7 @@ function closeOutdatedBatModal() {
   window.__hasShownOutdatedBatNotice = true;
   try {
     sessionStorage.setItem('genesis_outdated_bat_dismissed', 'true');
+    localStorage.setItem('genesis_outdated_bat_dismissed_v34', 'true');
   } catch(e) {}
   const modal = document.getElementById('outdatedBatModal');
   if (modal) modal.style.display = 'none';
@@ -28791,7 +29021,7 @@ function setOutdatedBatNoticeLang(lang) {
           <span style="font-size:20px;">⚡</span>
           <div>
             <div style="font-size:12px; color:#8b949e;">Phiên bản bạn đang chạy / Your version:</div>
-            <div id="outdatedBatCurrentVer" style="font-size:15px; font-weight:bold; color:#f85149;">v3.3 (Bản cũ)</div>
+            <div id="outdatedBatCurrentVer" style="font-size:15px; font-weight:bold; color:#f85149;">v3.2</div>
           </div>
         </div>
         <div style="font-size:18px; color:#8b949e;">➔</div>
