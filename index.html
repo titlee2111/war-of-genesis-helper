@@ -1219,6 +1219,11 @@ body {
           <span>Bộ lọc bậc này <strong style="color:#e3b341;">CHỈ DÀNH CHO NGỌC</strong>: Hệ thống chỉ tự động ghép các bậc ngọc được tích dấu xanh (đủ 6 viên). Bậc không tích sẽ giữ nguyên để dùng hoặc khảm trang bị. <em>(Không áp dụng cho tính năng Ghép Trang bị / Trang sức Tier 3 ở trên).</em></span>
         </div>
       </div>
+
+      <!-- JEWEL PRESERVATION SETTINGS (KEEP SPECIFIC JEWEL TYPES) -->
+      <div id="jewelPreserveSettings" style="margin-top:14px; padding-top:12px; border-top:1px solid #30363d;">
+        <div id="jewelPreserveContainer"></div>
+      </div>
     </div>
 
     <!-- ACTIVITY LOG PANEL -->
@@ -4544,7 +4549,344 @@ const I18N_TRAINING_NAMES = {
   'Tái chế Vé Triệu hồi Thú cưng': ['Recycle Pet Tickets', 'Reciclar ingressos de pet', 'Pet bileti geri dönüşümü', 'รีไซเคิลตั๋วสัตว์เลี้ยง', 'Daur Ulang Tiket Pet', '回收寵物召喚券', 'Переработка билетов питомцев', 'Reciclar Boletos de Mascota']
 };
 
-const I18N_MULTI = Object.assign({}, I18N_MULTI_1, I18N_MULTI_2, I18N_MULTI_3, I18N_MULTI_4, I18N_MULTI_5, I18N_MULTI_6, I18N_MULTI_7, I18N_MULTI_8, I18N_MULTI_9, I18N_STAGE_AREAS, I18N_TRAINING_NAMES);
+
+const I18N_MULTI_10 = {
+  // --- GRANULAR JEWEL PRESERVATION & TOOLTIPS ---
+  'Giữ lại ngọc đặc thù (Bấm trực tiếp vào các nút Tier để giữ)': [
+    'Preserved Jewels (Click Tier buttons to keep specific tiers)',
+    'Preservação de Joias (Clique nos botões de Tier para manter)',
+    'Mücevher Koruma (Belirli kademeleri korumak için Tier butonlarına tıklayın)',
+    'รักษากลุ่มอัญมณี (คลิกปุ่ม Tier เพื่อเลือกเก็บระดับที่ต้องการ)',
+    'Preservasi Permata (Klik tombol Tier untuk mempertahankan tier tertentu)',
+    '寶石分階保留（直接點擊各階按鈕保留）',
+    'Сохранение самоцветов (Нажмите кнопки тиров для защиты)',
+    'Preservación de Gemas (Haz clic en los botones de Tier para mantener)'
+  ],
+  'Đang giữ:': [
+    'Preserving:',
+    'Preservando:',
+    'Korunan:',
+    'กำลังรักษา:',
+    'Menyimpan:',
+    '目前保留：',
+    'Сохраняется:',
+    'Guardando:'
+  ],
+  'quy tắc (Ngọc có nút màu xanh sẽ KHÔNG BAO GIỜ bị ghép)': [
+    'rules (Green buttons will NEVER be auto-fused)',
+    'regras (Botões verdes NUNCA serão fundidos)',
+    'kural (Yeşil butonlar ASLA birleştirilmeyecek)',
+    'กฎ (ปุ่มสีเขียวจะไม่ถูกหลอมรวมโดยอัตโนมัติ)',
+    'aturan (Tombol hijau TIDAK AKAN PERNAH dilebur)',
+    '條規則（綠色按鈕的寶石絕不會被自動合成）',
+    'правил (Самоцветы с зелеными кнопками НИКОГДА не объединятся)',
+    'reglas (Los botones verdes NUNCA se fusionarán)'
+  ],
+  'Giữ Ngọc Sát Thương': [
+    'DPS Build',
+    'Build DPS',
+    'DPS Dizilimi',
+    'บิลด์ DPS',
+    'Build DPS',
+    '保留輸出寶石',
+    'Билд на урон',
+    'Build de DPS'
+  ],
+  'Giữ Ngọc Phòng Thủ': [
+    'Tank Build',
+    'Build Tank',
+    'Tank Dizilimi',
+    'บิลด์ Tank',
+    'Build Tank',
+    '保留防禦寶石',
+    'Билд на защиту',
+    'Build de Tanque'
+  ],
+  'Giữ Tất Cả': [
+    'Protect All',
+    'Proteger Tudo',
+    'Tümünü Koru',
+    'ป้องกันทั้งหมด',
+    'Lindungi Semua',
+    '保留全部',
+    'Защитить все',
+    'Proteger Todo'
+  ],
+  'Bỏ Giữ Hết': [
+    'Clear',
+    'Limpar',
+    'Temizle',
+    'ล้างทั้งหมด',
+    'Hapus Semua',
+    '清除保留',
+    'Сбросить',
+    'Borrar Todo'
+  ],
+  'Giữ tất cả': [
+    'Protect All',
+    'Proteger Tudo',
+    'Tümünü Koru',
+    'ป้องกันทั้งหมด',
+    'Lindungi Semua',
+    '保留全部',
+    'Защитить все',
+    'Proteger Todo'
+  ],
+  '✓ Giữ hết': [
+    '✓ Protected',
+    '✓ Protegido',
+    '✓ Korunuyor',
+    '✓ ป้องกันแล้ว',
+    '✓ Terlindungi',
+    '✓ 全部保留',
+    '✓ Защищено',
+    '✓ Protegido'
+  ],
+  'Hướng dẫn:': [
+    'How to use:',
+    'Instruções:',
+    'Talimatlar:',
+    'คำแนะนำ:',
+    'Panduan:',
+    '操作說明：',
+    'Инструкция:',
+    'Instrucciones:'
+  ],
+  'Bấm trực tiếp vào các ô T1 - T6 để bật/tắt giữ ngọc (ô chuyển sang viền xanh lá có khiên là được bảo vệ). Rê chuột vào ảnh ngọc hoặc nút T1-T6 để xem ảnh lớn và chỉ số buff chi tiết.': [
+    'Click directly on any T1 - T6 button to toggle preservation (green = protected). Hover over any jewel icon or tier button to view its large icon and stat buffs.',
+    'Clique nos botões T1 - T6 para alternar a preservação (verde com escudo = protegido). Passe o mouse sobre o ícone ou botões para ver os buffs detalhados.',
+    'Mücevher korumasını açıp kapatmak için doğrudan T1 - T6 butonlarına tıklayın (yeşil kalkan = korumalı). Büyük simge ve detaylı buff istatistikleri için üzerine gelin.',
+    'คลิกปุ่ม T1 - T6 เพื่อเปิด/ปิดการเก็บรักษา (กรอบเขียวมีโล่ = ได้รับการป้องกัน) วางเมาส์เหนือไอคอนเพื่อดูรูปขนาดใหญ่และค่าบัฟอย่างละเอียด',
+    'Klik tombol T1 - T6 untuk mengaktifkan/menonaktifkan preservasi (hijau dengan perisai = terlindungi). Arahkan kursor ke ikon untuk melihat gambar besar dan detail buff.',
+    '直接點擊 T1 - T6 按鈕以開啟/關閉寶石保留（綠色邊框帶有盾牌即為受保護）。滑鼠懸停於寶石圖示或階級按鈕上可查看放大圖示與詳細屬性增益。',
+    'Нажимайте кнопки T1 - T6 для переключения защиты (зеленая рамка со щитом = защищено). Наведите курсор на значок для просмотра увеличенного изображения и баффов.',
+    'Haz clic en los botones T1 - T6 para activar/desactivar la protección (verde con escudo = protegido). Pasa el cursor sobre el icono para ver la imagen grande y los atributos de mejora.'
+  ],
+  'Di chuột để xem thông tin buff qua các bậc': [
+    'Hover to see buff stats across tiers',
+    'Passe o mouse para ver os buffs por tier',
+    'Kademeler arası buffları görmek için gelin',
+    'วางเมาส์เพื่อดูค่าบัฟตามระดับชั้น',
+    'Arahkan kursor untuk melihat buff setiap tier',
+    '懸停以檢視各階屬性增益',
+    'Наведите курсор для просмотра баффов по тирам',
+    'Pasa el cursor para ver mejoras por nivel'
+  ],
+  'Bật/tắt giữ toàn bộ bậc ngọc này': [
+    'Toggle all tiers of this jewel',
+    'Alternar todos os tiers desta joia',
+    'Bu mücevherin tüm kademelerini aç/kapat',
+    'เปิด/ปิดทุกระดับของอัญมณีนี้',
+    'Alihkan semua tier permata ini',
+    '切換保留該寶石的所有階級',
+    'Переключить все тиры этого камня',
+    'Alternar todos los niveles de esta gema'
+  ],
+  'Chỉ số buff qua từng bậc': [
+    'Stat buffs across tiers',
+    'Buffs de atributos por tier',
+    'Kademelere göre buff özellikleri',
+    'สเตตัสบัฟตามระดับชั้น',
+    'Buff atribut di setiap tier',
+    '各階屬性增益數值',
+    'Бонусы характеристик по тирам',
+    'Mejoras de atributos por nivel'
+  ],
+  'Bậc 1-6': [
+    '6 Tiers',
+    '6 Tiers',
+    '6 Kademe',
+    '6 ระดับ',
+    '6 Tier',
+    '1-6 階',
+    '1-6 тиры',
+    '6 Niveles'
+  ],
+  'viên trong Balo/Kho': [
+    'in Bag/Vault',
+    'na Mochila/Cofre',
+    'Çanta/Depoda',
+    'ในกระเป๋า/คลัง',
+    'di Tas/Vault',
+    '顆於背包/倉庫',
+    'в сумке/хранилище',
+    'en Bolsa/Almacén'
+  ],
+  'Đang có:': [
+    'In Bag/Vault:',
+    'Na Mochila/Cofre:',
+    'Çanta/Depoda:',
+    'ในกระเป๋า/คลัง:',
+    'Di Tas/Vault:',
+    '目前擁有：',
+    'В наличии:',
+    'En inventario/almacén:'
+  ],
+  'Tổng cộng:': [
+    'Total in Bag/Vault:',
+    'Total na Mochila/Cofre:',
+    'Toplam (Çanta/Depo):',
+    'รวมในกระเป๋า/คลัง:',
+    'Total di Tas/Vault:',
+    '背包/倉庫總計：',
+    'Всего в сумке/хранилище:',
+    'Total en bolsa/almacén:'
+  ],
+  'Hiện có:': [
+    'Total:',
+    'Total:',
+    'Toplam:',
+    'มีอยู่:',
+    'Ada:',
+    '現有：',
+    'В наличии:',
+    'Posee:'
+  ],
+  'loại': [
+    'types',
+    'tipos',
+    'tür',
+    'ประเภท',
+    'tipe',
+    '種',
+    'видов',
+    'tipos'
+  ],
+  '⚔️ Ngọc Vũ Khí (Strife, Destruction, Elements)': [
+    '⚔️ Weapon Jewels (Strife, Destruction, Elements)',
+    '⚔️ Joias de Arma (Strife, Destruction, Elements)',
+    '⚔️ Silah Mücevherleri (Strife, Destruction, Elements)',
+    '⚔️ อัญมณีอาวุธ (Strife, Destruction, Elements)',
+    '⚔️ Permata Senjata (Strife, Destruction, Elements)',
+    '⚔️ 武器寶石（鬥爭、毀滅、元素）',
+    '⚔️ Самоцветы оружия (Strife, Destruction, Elements)',
+    '⚔️ Gemas de Arma (Strife, Destruction, Elements)'
+  ],
+  '🛡️ Ngọc Giáp (Fortitude, Life, Resistance)': [
+    '🛡️ Armor Jewels (Fortitude, Life, Resistance)',
+    '🛡️ Joias de Armadura (Fortitude, Life, Resistance)',
+    '🛡️ Zırh Mücevherleri (Fortitude, Life, Resistance)',
+    '🛡️ อัญมณีชุดเกราะ (Fortitude, Life, Resistance)',
+    '🛡️ Permata Zirah (Fortitude, Life, Resistance)',
+    '🛡️ 防具寶石（堅韌、生命、抗性）',
+    '🛡️ Самоцветы брони (Fortitude, Life, Resistance)',
+    '🛡️ Gemas de Armadura (Fortitude, Life, Resistance)'
+  ],
+  '💍 Ngọc Phụ Kiện (Valor, Wildness, Arcana, Wind, Steel, Magic Res)': [
+    '💍 Accessory Jewels (Valor, Wildness, Arcana, Wind, Steel, Magic Res)',
+    '💍 Joias de Acessório (Valor, Wildness, Arcana, Wind, Steel, Magic Res)',
+    '💍 Aksesuar Mücevherleri (Valor, Wildness, Arcana, Wind, Steel, Magic Res)',
+    '💍 อัญมณีเครื่องประดับ (Valor, Wildness, Arcana, Wind, Steel, Magic Res)',
+    '💍 Permata Aksesori (Valor, Wildness, Arcana, Wind, Steel, Magic Res)',
+    '💍 飾品寶石（勇氣、野性、秘術、風暴、鋼鐵、抗魔）',
+    '💍 Самоцветы аксессуаров (Valor, Wildness, Arcana, Wind, Steel, Magic Res)',
+    '💍 Gemas de Accesorio (Valor, Wildness, Arcana, Wind, Steel, Magic Res)'
+  ],
+  '✨ Ngọc Mana & Bổ Trợ (Luck, Abundance)': [
+    '✨ Mana & Support Jewels (Luck, Abundance)',
+    '✨ Joias de Mana e Suporte (Luck, Abundance)',
+    '✨ Mana ve Destek Mücevherleri (Luck, Abundance)',
+    '✨ อัญมณีมานาและสนับสนุน (Luck, Abundance)',
+    '✨ Permata Mana & Pendukung (Luck, Abundance)',
+    '✨ 魔力與輔助寶石（幸運、豐饒）',
+    '✨ Самоцветы маны и поддержки (Luck, Abundance)',
+    '✨ Gemas de Maná y Soporte (Luck, Abundance)'
+  ],
+
+  // --- SYSTEM UPDATE MODAL & OUTDATED NOTICES ---
+  'Thông Báo Cập Nhật Hệ Thống v3.5': [
+    'System Update Notice v3.5',
+    'Aviso de Atualização do Sistema v3.5',
+    'Sistem Güncelleme Bildirimi v3.5',
+    'ประกาศอัปเดตระบบ v3.5',
+    'Pemberitahuan Pembaruan Sistem v3.5',
+    '系統更新公告 v3.5',
+    'Уведомление об обновлении системы v3.5',
+    'Aviso de Actualización del Sistema v3.5'
+  ],
+  'Tính Năng Giữ Ngọc Đặc Thù Theo Từng Bậc & Tooltip Buff Chi Tiết': [
+    'Granular Jewel Tier Preservation & Interactive Stat Buff Tooltips',
+    'Preservação Granular de Joias por Tier e Tooltips de Buff Interativos',
+    'Kademeli Mücevher Koruma (Tier) ve Detaylı Buff İpuçları',
+    'ระบบรักษากลุ่มอัญมณีตามระดับ Tier และทูลทิปบัฟละเอียด',
+    'Preservasi Permata Berdasarkan Tier & Tooltip Buff Interaktif',
+    '寶石分階自訂保留（Tier 1-6）與詳細增益提示窗',
+    'Выборочное сохранение самоцветов по тирам и детальные баффы',
+    'Preservación Detallada de Gemas por Nivel y Tooltips de Mejoras'
+  ],
+  'Tải Script Mới (.ZIP)': [
+    'Download New Script (.ZIP)',
+    'Baixar Novo Script (.ZIP)',
+    'Yeni Scripti İndir (.ZIP)',
+    'ดาวน์โหลดสคริปต์ใหม่ (.ZIP)',
+    'Unduh Script Baru (.ZIP)',
+    '下載最新腳本 (.ZIP)',
+    'Скачать новый скрипт (.ZIP)',
+    'Descargar Nuevo Script (.ZIP)'
+  ],
+  'Đã Hiểu & Bắt Đầu': [
+    'Got It & Proceed',
+    'Entendido e Iniciar',
+    'Anladım ve Başla',
+    'เข้าใจแล้ว & เริ่มต้น',
+    'Mengerti & Lanjutkan',
+    '我知道了，開始體驗',
+    'Понятно, продолжить',
+    'Entendido y Continuar'
+  ],
+  'Không hiển thị lại thông báo này': [
+    "Don't show this announcement again",
+    'Não mostrar este aviso novamente',
+    'Bu duyuruyu bir daha gösterme',
+    'ไม่ต้องแสดงประกาศนี้อีก',
+    'Jangan tampilkan pengumuman ini lagi',
+    '不再顯示此更新公告',
+    'Больше не показывать это уведомление',
+    'No volver a mostrar este aviso'
+  ],
+  'Phát Hiện File .BAT / LiveSync Bản Cũ': [
+    'Outdated .BAT / LiveSync Launcher Detected',
+    'Launcher LiveSync/.BAT Desatualizado Detectado',
+    'Eski .BAT / LiveSync Başlatıcı Algılandı',
+    'ตรวจพบไฟล์ .BAT / LiveSync เวอร์ชันเก่า',
+    'Launcher .BAT / LiveSync Versi Lama Terdeteksi',
+    '偵測到舊版 .BAT / LiveSync 啟動腳本',
+    'Обнаружена устаревшая версия .BAT / LiveSync',
+    'Se detectó un lanzador .BAT / LiveSync desactualizado'
+  ],
+  'Vui lòng cập nhật file mới để sử dụng tính năng mới & sửa lỗi quan trọng': [
+    'Please update to the latest script for new features & critical bug fixes',
+    'Atualize para o script mais recente para obter novos recursos e correções',
+    'Yeni özellikler ve önemli hata düzeltmeleri için lütfen son sürüme güncelleyin',
+    'โปรดอัปเดตสคริปต์ล่าสุดเพื่อใช้งานฟีเจอร์ใหม่และแก้ไขข้อผิดพลาดสำคัญ',
+    'Harap perbarui ke skrip terbaru untuk fitur baru & perbaikan bug penting',
+    '請更新至最新腳本以使用新功能並獲得重大錯誤修復',
+    'Пожалуйста, обновите скрипт для получения новых функций и исправлений',
+    'Por favor actualiza al script más reciente para nuevas funciones y correcciones'
+  ],
+  'Đã Hiểu / Đóng': [
+    'Got It / Close',
+    'Entendido / Fechar',
+    'Anladım / Kapat',
+    'เข้าใจแล้ว / ปิด',
+    'Mengerti / Tutup',
+    '我知道了 / 關閉',
+    'Понятно / Закрыть',
+    'Entendido / Cerrar'
+  ],
+  'Tải Gói Script Mới (.ZIP)': [
+    'Download New Script (.ZIP)',
+    'Baixar Novo Script (.ZIP)',
+    'Yeni Script Paketini İndir (.ZIP)',
+    'ดาวน์โหลดแพ็กเกจสคริปต์ใหม่ (.ZIP)',
+    'Unduh Paket Script Baru (.ZIP)',
+    '下載最新腳本套件 (.ZIP)',
+    'Скачать новый пакет скрипта (.ZIP)',
+    'Descargar Nuevo Paquete de Script (.ZIP)'
+  ]
+};
+
+const I18N_MULTI = Object.assign({}, I18N_MULTI_1, I18N_MULTI_2, I18N_MULTI_3, I18N_MULTI_4, I18N_MULTI_5, I18N_MULTI_6, I18N_MULTI_7, I18N_MULTI_8, I18N_MULTI_9, I18N_MULTI_10, I18N_STAGE_AREAS, I18N_TRAINING_NAMES);
 
 function i18nStageWords(s, lang) {
   const w = I18N_STAGE_WORDS[lang];
@@ -16490,9 +16832,9 @@ function pollLiveGame() {
             scheduleNextPoll(100);
             return;
           } else if (data && data.nickname) {
-            data.launcherVersion = data.launcherVersion || '3.4';
-            data.hookVersion = data.hookVersion || '3.4';
-            data.bridgeVersion = data.bridgeVersion || '3.4';
+            data.launcherVersion = data.launcherVersion || '3.5';
+            data.hookVersion = data.hookVersion || '3.5';
+            data.bridgeVersion = data.bridgeVersion || '3.5';
             data.isLiveConnected = true;
             applyLiveGameData(data);
             updateLiveSyncStatus('online');
@@ -18319,9 +18661,9 @@ function sendEvaluatePoll() {
             };
           } catch (e) { return null; }
         })(),
-        launcherVersion: '3.4',
-        hookVersion: '3.4',
-        bridgeVersion: '3.4',
+        launcherVersion: '3.5',
+        hookVersion: '3.5',
+        bridgeVersion: '3.5',
         isLiveConnected: true
       });
     } catch(err) {
@@ -18350,9 +18692,9 @@ function sendEvaluatePoll() {
 function applyLiveGameData(data) {
   if (!data) return;
   if (!data.launcherVersion && !data.hookVersion && !data.bridgeVersion && (window.isGameLiveSynced || data.nickname)) {
-    data.launcherVersion = '3.4';
-    data.hookVersion = '3.4';
-    data.bridgeVersion = '3.4';
+    data.launcherVersion = '3.5';
+    data.hookVersion = '3.5';
+    data.bridgeVersion = '3.5';
     data.isLiveConnected = true;
   }
   if (typeof checkOutdatedBatLauncher === 'function') {
@@ -18610,8 +18952,9 @@ function applyLiveGameData(data) {
       const tierCounts = {};
       for (let t of autoFuseAllowedTiers) tierCounts[t] = 0;
       for (let j of jewels) {
-        // EXCLUDE LOCKED JEWELS: locked jewels cannot be fused in workshop
+        // EXCLUDE LOCKED JEWELS & PRESERVED JEWELS:
         if (!j.isLock && (j.location === 1 || (isIncludeStorageJewelActive && j.location === 2))) {
+          if (typeof isJewelPreserved === 'function' && isJewelPreserved(j)) continue;
           if (j.rating && autoFuseAllowedTiers.includes(j.rating)) {
             tierCounts[j.rating] = (tierCounts[j.rating] || 0) + 1;
           }
@@ -18619,7 +18962,7 @@ function applyLiveGameData(data) {
       }
       const hasFuseable = Object.values(tierCounts).some(cnt => cnt >= 6);
       if (hasFuseable && !window.__pendingJewelCmd) {
-        queueJewelCmd({ action: 'fuse', allowedTiers: autoFuseAllowedTiers, includeStorage: isIncludeStorageJewelActive });
+        queueJewelCmd({ action: 'fuse', allowedTiers: autoFuseAllowedTiers, includeStorage: isIncludeStorageJewelActive, preservedTypes: autoFusePreservedJewelTypes });
       }
     }
 
@@ -23844,6 +24187,342 @@ function queueJewelCmd(cmd) {
   }
 }
 
+let autoFusePreservedJewelTypes = [];
+try {
+  const savedPreserved = localStorage.getItem('genesis_autofuse_preserved_jewel_types');
+  if (savedPreserved) {
+    autoFusePreservedJewelTypes = JSON.parse(savedPreserved);
+  }
+} catch(e) {}
+
+function isJewelPreserved(jewel) {
+  if (!jewel || !jewel.itemTid) return false;
+  const list = (typeof autoFusePreservedJewelTypes !== 'undefined' && Array.isArray(autoFusePreservedJewelTypes)) ? autoFusePreservedJewelTypes : [];
+  const tid = Number(jewel.itemTid);
+  const baseTid = Math.floor(tid / 100) * 100;
+  return list.includes(baseTid) || list.includes(tid);
+}
+
+function getJewelBaseTypes() {
+  const db = (typeof jewelDatabase !== 'undefined' && Array.isArray(jewelDatabase)) ? jewelDatabase : (window.jewelDatabase || []);
+  const map = {};
+  for (const it of db) {
+    if (it.id === 9600) continue;
+    const b = Math.floor(it.id / 100) * 100;
+    if (!map[b]) {
+      map[b] = {
+        id: b,
+        name_vi: (it.name_vi || '').replace(/\s*Cấp.*$/, '').trim(),
+        name_en: (it.name_en || '').replace(/^(Low|Mid|High|Medium)-Grade\s+/i, '').replace(/^(Advanced|Special|Superior)\s+/i, '').trim(),
+        category_vi: it.category_vi || 'Khác',
+        category_en: it.category_en || 'Other',
+        icon: it.icon || 'Item_Jewel_of_A_01'
+      };
+    }
+  }
+  return Object.values(map);
+}
+
+function getJewelBuffDetails(itemTid, baseTid) {
+  const isEn = isJewelLangEn();
+  const db = (typeof jewelDatabase !== 'undefined' && Array.isArray(jewelDatabase)) ? jewelDatabase : (window.jewelDatabase || []);
+  const jewels = (window.liveJewelData && window.liveJewelData.jewels) || [];
+
+  if (itemTid) {
+    const it = db.find(d => d.id === Number(itemTid));
+    if (!it) return null;
+    const name = isEn ? it.name_en : it.name_vi;
+    const gradeName = isEn ? it.grade_name_en : it.grade_name_vi;
+    const opts = (it.options || []).map(o => isEn ? o.text_en : o.text_vi);
+    const owned = jewels.filter(j => Number(j.itemTid) === Number(itemTid)).length;
+    return {
+      title: name,
+      sub: (isEn ? it.category_en : it.category_vi) + ' • ' + gradeName,
+      gradeName: gradeName,
+      category: isEn ? it.category_en : it.category_vi,
+      options: opts,
+      icon: it.icon || 'Item_Jewel_of_A_01',
+      tier: it.grade || (it.id % 100),
+      ownedText: isEn ? ('In Bag/Vault: ' + owned + ' owned') : ('Đang có: ' + owned + ' viên trong Balo/Kho')
+    };
+  } else if (baseTid) {
+    const tiers = db.filter(d => Math.floor(d.id / 100) * 100 === Number(baseTid)).sort((a,b) => a.id - b.id);
+    if (tiers.length === 0) return null;
+    const first = tiers[0];
+    const name = (isEn ? first.name_en : first.name_vi).replace(/^(Low|Mid|High|Medium)-Grade\s+/i, '').replace(/^(Advanced|Special|Superior)\s+/i, '').replace(/\s*Cấp.*$/, '').trim();
+    const tierSummaries = tiers.map(t => {
+      const gName = isEn ? ('Tier ' + t.grade) : ('Cấp ' + t.grade);
+      const opts = (t.options || []).map(o => isEn ? (o.name_en + ': +' + o.min + '~' + o.max + (o.unit||'')) : (o.name_vi + ': +' + o.min + '~' + o.max + (o.unit||''))).join(' | ');
+      return '<b>' + gName + ':</b> ' + opts;
+    });
+    const owned = jewels.filter(j => Math.floor(Number(j.itemTid) / 100) * 100 === Number(baseTid)).length;
+    return {
+      title: name,
+      sub: (isEn ? first.category_en : first.category_vi) + ' • ' + (isEn ? 'Stat buffs across tiers' : 'Chỉ số buff qua từng bậc'),
+      gradeName: isEn ? '6 Tiers' : 'Bậc 1-6',
+      category: isEn ? first.category_en : first.category_vi,
+      options: tierSummaries,
+      icon: first.icon || 'Item_Jewel_of_A_01',
+      tier: 6,
+      ownedText: isEn ? ('Total in Bag/Vault: ' + owned + ' jewels') : ('Tổng cộng: ' + owned + ' viên trong Balo/Kho')
+    };
+  }
+  return null;
+}
+
+function showJewelBuffTooltip(e, itemTid, baseTid) {
+  const tip = document.getElementById('jewelBuffTooltip');
+  if (!tip) return;
+  const info = getJewelBuffDetails(itemTid, baseTid);
+  if (!info) return;
+
+  const iconMap = (typeof skillIconsBase64 !== 'undefined' ? skillIconsBase64 : (window.skillIconsBase64 || {}));
+  const iconSrc = iconMap && iconMap[info.icon] ? iconMap[info.icon] : '';
+  const tColor = getTierStyle(info.tier || 1).color || '#58a6ff';
+
+  let iconHtml = iconSrc 
+    ? '<img src="' + iconSrc + '" alt="' + info.icon + '" style="width:46px; height:46px; border-radius:8px; object-fit:contain; background:#0d1117; border:2px solid ' + tColor + '; box-shadow:0 0 10px ' + tColor + '55; flex-shrink:0;">'
+    : '<div style="width:46px; height:46px; border-radius:8px; background:#0d1117; border:2px solid ' + tColor + '; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">💎</div>';
+
+  let html = '<div style="display:flex; align-items:center; gap:12px; margin-bottom:10px; border-bottom:1px solid #30363d; padding-bottom:8px;">' +
+    iconHtml +
+    '<div style="flex:1; min-width:0;">' +
+      '<div style="font-weight:bold; color:' + tColor + '; font-size:14px; line-height:1.2;">' + info.title + '</div>' +
+      '<div style="font-size:11.5px; color:#8b949e; margin-top:3px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">' +
+        '<span style="background:' + tColor + '22; color:' + tColor + '; border:1px solid ' + tColor + '55; padding:1px 6px; border-radius:4px; font-weight:bold; font-size:10.5px;">' + info.gradeName + '</span>' +
+        '<span>' + info.category + '</span>' +
+      '</div>' +
+      (info.ownedText ? '<div style="font-size:11px; color:#58a6ff; margin-top:3px; font-weight:bold;">📦 ' + info.ownedText + '</div>' : '') +
+    '</div>' +
+  '</div>' +
+  '<div style="display:flex; flex-direction:column; gap:5px;">' +
+    info.options.map(o => '<div style="display:flex; align-items:flex-start; gap:6px; font-size:12px;"><span>✨</span><span>' + o + '</span></div>').join('') +
+  '</div>';
+
+  tip.innerHTML = html;
+  tip.style.pointerEvents = 'none';
+  tip.style.display = 'block';
+
+  const x = e.clientX + 16;
+  const y = e.clientY + 16;
+  const tipRect = tip.getBoundingClientRect();
+  const maxX = window.innerWidth - tipRect.width - 24;
+  const maxY = window.innerHeight - tipRect.height - 24;
+
+  tip.style.left = Math.min(x, Math.max(10, maxX)) + 'px';
+  tip.style.top = Math.min(y, Math.max(10, maxY)) + 'px';
+}
+
+function hideJewelBuffTooltip() {
+  const tip = document.getElementById('jewelBuffTooltip');
+  if (tip) tip.style.display = 'none';
+}
+
+function toggleJewelTierPreservation(baseTid, tier) {
+  baseTid = Number(baseTid);
+  tier = Number(tier);
+  const specificTid = baseTid + tier;
+  
+  const baseIdx = autoFusePreservedJewelTypes.indexOf(baseTid);
+  if (baseIdx >= 0) {
+    autoFusePreservedJewelTypes.splice(baseIdx, 1);
+    for (let t = 1; t <= 6; t++) {
+      if (t !== tier) autoFusePreservedJewelTypes.push(baseTid + t);
+    }
+  } else {
+    const idx = autoFusePreservedJewelTypes.indexOf(specificTid);
+    if (idx >= 0) {
+      autoFusePreservedJewelTypes.splice(idx, 1);
+    } else {
+      autoFusePreservedJewelTypes.push(specificTid);
+    }
+  }
+  autoFusePreservedJewelTypes.sort((a, b) => a - b);
+  try {
+    localStorage.setItem('genesis_autofuse_preserved_jewel_types', JSON.stringify(autoFusePreservedJewelTypes));
+  } catch(e) {}
+  renderJewelPreserveSettings();
+  renderJewelSection();
+
+  const baseTypes = getJewelBaseTypes();
+  const found = baseTypes.find(b => b.id === baseTid);
+  const name = found ? (isJewelLangEn() ? found.name_en : found.name_vi) : ('ID ' + baseTid);
+  const isNowPreserved = autoFusePreservedJewelTypes.includes(baseTid) || autoFusePreservedJewelTypes.includes(specificTid);
+  if (isNowPreserved) {
+    addJewelLog('🛡️ Giữ lại [' + name + ' - Tier ' + tier + '] (KHÔNG auto ghép)', 'success');
+  } else {
+    addJewelLog('🔓 Bỏ giữ [' + name + ' - Tier ' + tier + '] (Cho phép ghép)', 'info');
+  }
+}
+
+function toggleJewelTypePreservation(baseTid) {
+  baseTid = Number(baseTid);
+  const isFullyPreserved = autoFusePreservedJewelTypes.includes(baseTid) ||
+    [1, 2, 3, 4, 5, 6].every(t => autoFusePreservedJewelTypes.includes(baseTid + t));
+  
+  if (isFullyPreserved) {
+    autoFusePreservedJewelTypes = autoFusePreservedJewelTypes.filter(id => id !== baseTid && (id < baseTid || id > baseTid + 6));
+  } else {
+    autoFusePreservedJewelTypes = autoFusePreservedJewelTypes.filter(id => id < baseTid || id > baseTid + 6);
+    autoFusePreservedJewelTypes.push(baseTid);
+  }
+  autoFusePreservedJewelTypes.sort((a, b) => a - b);
+  try {
+    localStorage.setItem('genesis_autofuse_preserved_jewel_types', JSON.stringify(autoFusePreservedJewelTypes));
+  } catch(e) {}
+  renderJewelPreserveSettings();
+  renderJewelSection();
+
+  const baseTypes = getJewelBaseTypes();
+  const found = baseTypes.find(b => b.id === baseTid);
+  const name = found ? (isJewelLangEn() ? found.name_en : found.name_vi) : ('ID ' + baseTid);
+  if (isFullyPreserved) {
+    addJewelLog('🔓 Đã bỏ giữ toàn bộ bậc ngọc [' + name + ']', 'info');
+  } else {
+    addJewelLog('🛡️ Đã chọn giữ TẤT CẢ các bậc ngọc [' + name + ']', 'success');
+  }
+}
+
+function applyJewelPreservePreset(presetName) {
+  const isEn = isJewelLangEn();
+  if (presetName === 'dps') {
+    autoFusePreservedJewelTypes = [195100, 195200, 195300, 197100];
+    addJewelLog(isEn ? '🛡️ Preserved DPS Jewels (Strife, Destruction, Elements, Valor)' : '🛡️ Đã chọn giữ các loại ngọc Sát thương / DPS (Đấu Tranh, Hủy Diệt, Nguyên Tố, Dũng Khí)', 'info');
+  } else if (presetName === 'tank') {
+    autoFusePreservedJewelTypes = [196100, 196200, 196300, 198200, 198300];
+    addJewelLog(isEn ? '🛡️ Preserved Tank Jewels (Fortitude, Life, Resistance, Steel, Magic Res)' : '🛡️ Đã chọn giữ các loại ngọc Thủ / Tank (Kiên Cường, Sinh Mệnh, Kháng Tính, Thép, Kháng Phép)', 'info');
+  } else if (presetName === 'all') {
+    const baseTypes = getJewelBaseTypes();
+    autoFusePreservedJewelTypes = baseTypes.map(b => b.id);
+    addJewelLog(isEn ? '🛡️ Preserved ALL jewel types (No auto-fusion)' : '🛡️ Đã chọn GIỮ TẤT CẢ các loại ngọc (Sẽ không auto ghép loại nào)', 'info');
+  } else if (presetName === 'none' || presetName === 'clear') {
+    autoFusePreservedJewelTypes = [];
+    addJewelLog(isEn ? '⚪ Cleared all preserved jewel types' : '⚪ Đã bỏ giữ toàn bộ ngọc (Tất cả ngọc chưa khóa đều có thể ghép)', 'info');
+  }
+  try {
+    localStorage.setItem('genesis_autofuse_preserved_jewel_types', JSON.stringify(autoFusePreservedJewelTypes));
+  } catch(e) {}
+  renderJewelPreserveSettings();
+  renderJewelSection();
+}
+
+function renderJewelPreserveSettings() {
+  const container = document.getElementById('jewelPreserveContainer');
+  if (!container) return;
+  const isEn = isJewelLangEn();
+  const baseTypes = getJewelBaseTypes();
+  const jewels = (window.liveJewelData && window.liveJewelData.jewels) || [];
+
+  const ownedBaseCountMap = {};
+  const ownedTierCountMap = {};
+  for (const j of jewels) {
+    const tid = Number(j.itemTid);
+    const b = Math.floor(tid / 100) * 100;
+    ownedBaseCountMap[b] = (ownedBaseCountMap[b] || 0) + 1;
+    ownedTierCountMap[tid] = (ownedTierCountMap[tid] || 0) + 1;
+  }
+
+  const iconMap = (typeof skillIconsBase64 !== 'undefined' ? skillIconsBase64 : (window.skillIconsBase64 || {}));
+
+  const catOrder = [
+    { key_vi: 'Ngọc Vũ Khí', key_en: 'Weapon Jewel', title_vi: '⚔️ Ngọc Vũ Khí (Strife, Destruction, Elements)', title_en: '⚔️ Weapon Jewels (Strife, Destruction, Elements)' },
+    { key_vi: 'Ngọc Giáp', key_en: 'Armor Jewel', title_vi: '🛡️ Ngọc Giáp (Fortitude, Life, Resistance)', title_en: '🛡️ Armor Jewels (Fortitude, Life, Resistance)' },
+    { key_vi: 'Ngọc Phụ Kiện', key_en: 'Accessory Jewel', title_vi: '💍 Ngọc Phụ Kiện (Valor, Wildness, Arcana, Wind, Steel, Magic Res)', title_en: '💍 Accessory Jewels (Valor, Wildness, Arcana, Wind, Steel, Magic Res)' },
+    { key_vi: 'Ngọc Mana / Bổ Trợ', key_en: 'Mana Jewel', title_vi: '✨ Ngọc Mana & Bổ Trợ (Luck, Abundance)', title_en: '✨ Mana & Support Jewels (Luck, Abundance)' }
+  ];
+
+  let resHtml = '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px; background:#161b22; border:1px solid #30363d; border-radius:8px; padding:10px 14px;">' +
+    '<div>' +
+      '<div style="font-weight:bold; color:#7ee787; font-size:14px; display:inline-flex; align-items:center; gap:8px;">' +
+        '🛡️ ' + getLangTextOr('Giữ lại ngọc đặc thù (Bấm trực tiếp vào các nút Tier để giữ)') +
+      '</div>' +
+      '<div style="font-size:12px; color:#8b949e; margin-top:3px;">' +
+        getLangTextOr('Đang giữ:') + ' <b style="color:#7ee787;">' + autoFusePreservedJewelTypes.length + '</b> ' + getLangTextOr('quy tắc (Ngọc có nút màu xanh sẽ KHÔNG BAO GIỜ bị ghép)') +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+      '<button class="small-btn" style="background:#238636; color:#fff; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:6px;" onclick="applyJewelPreservePreset(\'dps\')" title="' + getLangTextOr('Giữ Ngọc Sát Thương') + '">⚔️ ' + getLangTextOr('Giữ Ngọc Sát Thương') + '</button>' +
+      '<button class="small-btn" style="background:#1f6feb; color:#fff; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:6px;" onclick="applyJewelPreservePreset(\'tank\')" title="' + getLangTextOr('Giữ Ngọc Phòng Thủ') + '">🛡️ ' + getLangTextOr('Giữ Ngọc Phòng Thủ') + '</button>' +
+      '<button class="small-btn" style="background:#8957e5; color:#fff; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:6px;" onclick="applyJewelPreservePreset(\'all\')">🔒 ' + (isEn ? 'Protect All' : 'Giữ Tất Cả') + '</button>' +
+      '<button class="small-btn" style="background:#30363d; color:#f0f6fc; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:6px;" onclick="applyJewelPreservePreset(\'none\')">⚪ ' + (isEn ? 'Clear' : 'Bỏ Giữ Hết') + '</button>' +
+    '</div>' +
+  '</div>';
+
+  resHtml += '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(310px, 1fr)); gap:14px;">';
+
+  for (const cat of catOrder) {
+    const catItems = baseTypes.filter(b => (b.category_vi === cat.key_vi || b.category_en === cat.key_en));
+    if (catItems.length === 0) continue;
+
+    resHtml += '<div style="background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:12px 14px; display:flex; flex-direction:column; gap:10px; box-shadow:0 4px 12px rgba(0,0,0,0.25);">' +
+      '<div style="font-size:13px; font-weight:bold; color:#e3b341; border-bottom:1px solid #21262d; padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">' +
+        '<span>' + getLangTextOr(cat.title_vi) + '</span>' +
+        '<span style="font-size:11px; color:#8b949e; font-weight:normal;">' + catItems.length + ' loại</span>' +
+      '</div>' +
+      '<div style="display:flex; flex-direction:column; gap:10px;">';
+
+    for (const b of catItems) {
+      const isBaseChecked = autoFusePreservedJewelTypes.includes(b.id);
+      const isFullyChecked = isBaseChecked || [1, 2, 3, 4, 5, 6].every(t => autoFusePreservedJewelTypes.includes(b.id + t));
+      const hasAnyTierChecked = isBaseChecked || [1, 2, 3, 4, 5, 6].some(t => autoFusePreservedJewelTypes.includes(b.id + t));
+      const name = isEn ? b.name_en : b.name_vi;
+      const totalOwned = ownedBaseCountMap[b.id] || 0;
+      const iconSrc = iconMap && iconMap[b.icon] ? iconMap[b.icon] : '';
+
+      resHtml += '<div style="background:#161b22; border:1px solid ' + (hasAnyTierChecked ? 'rgba(126,231,135,0.4)' : '#30363d') + '; border-radius:8px; padding:10px 12px; transition:all 0.15s ease;">' +
+        '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">' +
+          '<div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onmouseenter="showJewelBuffTooltip(event, null, ' + b.id + ')" onmouseleave="hideJewelBuffTooltip()">' +
+            (iconSrc 
+              ? '<img src="' + iconSrc + '" alt="' + b.icon + '" style="width:40px; height:40px; border-radius:6px; object-fit:contain; background:#0d1117; border:1px solid ' + (hasAnyTierChecked ? '#2ea043' : '#30363d') + '; padding:2px; flex-shrink:0; box-shadow:' + (hasAnyTierChecked ? '0 0 8px rgba(46,160,67,0.4)' : 'none') + ';">' 
+              : '<div style="width:40px; height:40px; border-radius:6px; background:#0d1117; border:1px solid #30363d; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">💎</div>') +
+            '<div>' +
+              '<div style="color:' + (hasAnyTierChecked ? '#7ee787' : '#f0f6fc') + '; font-weight:bold; font-size:13.5px; display:flex; align-items:center; gap:6px;">' +
+                name +
+                '<span style="font-size:11px; color:#8b949e; cursor:help;" title="' + getLangTextOr('Di chuột để xem thông tin buff qua các bậc') + '">ℹ️</span>' +
+              '</div>' +
+              '<div style="font-size:11.5px; color:' + (totalOwned > 0 ? '#58a6ff' : '#6e7681') + '; font-weight:' + (totalOwned > 0 ? 'bold' : 'normal') + '; margin-top:2px;">' +
+                getLangTextOr('Hiện có:') + ' ' + totalOwned + ' ' + getLangTextOr('viên') +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div>' +
+            '<button type="button" onclick="toggleJewelTypePreservation(' + b.id + ')" style="background:' + (isFullyChecked ? '#238636' : '#21262d') + '; border:1px solid ' + (isFullyChecked ? '#2ea043' : '#30363d') + '; color:' + (isFullyChecked ? '#fff' : '#c9d1d9') + '; border-radius:5px; font-size:11px; font-weight:bold; padding:3px 8px; cursor:pointer;" title="' + getLangTextOr('Bật/tắt giữ toàn bộ bậc ngọc này') + '">' +
+              (isFullyChecked ? getLangTextOr('✓ Giữ hết') : getLangTextOr('Giữ tất cả')) +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:6px;">';
+
+      for (let t = 1; t <= 6; t++) {
+        const isTierPreserved = isBaseChecked || autoFusePreservedJewelTypes.includes(b.id + t);
+        const tierCount = ownedTierCountMap[b.id + t] || 0;
+        const tStyle = getTierStyle(t);
+        const tColor = tStyle.color || '#58a6ff';
+
+        resHtml += '<button type="button" onclick="toggleJewelTierPreservation(' + b.id + ', ' + t + ')" onmouseenter="showJewelBuffTooltip(event, ' + (b.id + t) + ')" onmouseleave="hideJewelBuffTooltip()" style="background:' + (isTierPreserved ? 'rgba(46,160,67,0.25)' : '#0d1117') + '; border:' + (isTierPreserved ? '1.5px solid #3fb950' : '1px solid #30363d') + '; color:' + (isTierPreserved ? '#7ee787' : tColor) + '; border-radius:6px; padding:4px 0; font-size:11.5px; font-weight:bold; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease; box-shadow:' + (isTierPreserved ? '0 0 6px rgba(46,160,67,0.3)' : 'none') + ';">' +
+          '<span>' + (isTierPreserved ? '🛡️ ' : '') + 'T' + t + '</span>' +
+          '<span style="font-size:10px; opacity:' + (tierCount > 0 ? '1' : '0.45') + '; color:' + (tierCount > 0 ? '#58a6ff' : '#8b949e') + ';">' + tierCount + '</span>' +
+        '</button>';
+      }
+
+      resHtml += '</div></div>';
+    }
+
+    resHtml += '</div></div>';
+  }
+
+  resHtml += '</div>';
+
+  resHtml += '<div style="font-size:12px; color:#8b949e; margin-top:12px; display:flex; align-items:center; gap:8px; background:#161b22; border:1px solid #30363d; border-radius:6px; padding:8px 12px;">' +
+    '<span style="font-size:16px;">💡</span>' +
+    '<span>' +
+      '<b>' + getLangTextOr('Hướng dẫn:') + '</b> ' + getLangTextOr('Bấm trực tiếp vào các ô T1 - T6 để bật/tắt giữ ngọc (ô chuyển sang viền xanh lá có khiên là được bảo vệ). Rê chuột vào ảnh ngọc hoặc nút T1-T6 để xem ảnh lớn và chỉ số buff chi tiết.') +
+    '</span>' +
+  '</div>';
+
+  container.innerHTML = resHtml;
+}
+
 let autoFuseAllowedTiers = [1, 2]; // SAFEGUARD: Default only Tier 1 & 2 jewels
 try {
   const savedTiers = localStorage.getItem('genesis_autofuse_allowed_tiers');
@@ -23890,9 +24569,9 @@ function triggerManualJewelFuse(tier) {
   const jewels = (window.liveJewelData && window.liveJewelData.jewels) || [];
   if (jewels.length > 0) {
     if (tier) {
-      const availUnlocked = jewels.filter(j => !j.isLock && (j.location === 1 || (isIncludeStorageJewelActive && j.location === 2)) && j.rating === tier).length;
+      const availUnlocked = jewels.filter(j => !j.isLock && !(typeof isJewelPreserved === 'function' && isJewelPreserved(j)) && (j.location === 1 || (isIncludeStorageJewelActive && j.location === 2)) && j.rating === tier).length;
       if (availUnlocked < 6) {
-        addJewelLog('ℹ️ Không đủ 6 viên ngọc cùng bậc (chưa khóa) để ghép (Hiện có ' + availUnlocked + '/6 viên Cấp ' + tier + ').', 'warning');
+        addJewelLog('ℹ️ Không đủ 6 viên ngọc cùng bậc (chưa khóa & không giữ lại) để ghép (Hiện có ' + availUnlocked + '/6 viên Cấp ' + tier + ').', 'warning');
         return;
       }
     } else {
@@ -23903,7 +24582,7 @@ function triggerManualJewelFuse(tier) {
       const tierCounts = {};
       for (let t of autoFuseAllowedTiers) tierCounts[t] = 0;
       for (let j of jewels) {
-        if (!j.isLock && (j.location === 1 || (isIncludeStorageJewelActive && j.location === 2))) {
+        if (!j.isLock && !(typeof isJewelPreserved === 'function' && isJewelPreserved(j)) && (j.location === 1 || (isIncludeStorageJewelActive && j.location === 2))) {
           if (j.rating && autoFuseAllowedTiers.includes(j.rating)) {
             tierCounts[j.rating] = (tierCounts[j.rating] || 0) + 1;
           }
@@ -23911,7 +24590,7 @@ function triggerManualJewelFuse(tier) {
       }
       const hasReady = Object.values(tierCounts).some(cnt => cnt >= 6);
       if (!hasReady) {
-        addJewelLog('ℹ️ Không đủ 6 viên ngọc cùng bậc (chưa khóa) để ghép.', 'warning');
+        addJewelLog('ℹ️ Không đủ 6 viên ngọc cùng bậc (chưa khóa & không giữ lại) để ghép.', 'warning');
         return;
       }
     }
@@ -23919,14 +24598,14 @@ function triggerManualJewelFuse(tier) {
 
   if (tier) {
     addJewelLog('⚡ Đang yêu cầu Lò rèn gom 6 viên Cấp ' + tier + ' để ghép lên Cấp ' + (tier + 1) + '...', 'info');
-    queueJewelCmd({ action: 'fuse', tier: tier, allowedTiers: [tier], includeStorage: isIncludeStorageJewelActive });
+    queueJewelCmd({ action: 'fuse', tier: tier, allowedTiers: [tier], includeStorage: isIncludeStorageJewelActive, preservedTypes: autoFusePreservedJewelTypes });
   } else {
     if (autoFuseAllowedTiers.length === 0) {
       addJewelLog('⚠️ Bạn chưa chọn bậc ngọc nào trong cài đặt! Hãy tích chọn ít nhất 1 bậc để ghép.', 'warning');
       return;
     }
     addJewelLog('⚡ Đang yêu cầu Lò rèn quét và tự động ghép các bậc đã chọn [' + autoFuseAllowedTiers.map(t => 'Tier ' + t).join(', ') + '] (6 viên/lượt)...', 'info');
-    queueJewelCmd({ action: 'fuse', allowedTiers: autoFuseAllowedTiers, includeStorage: isIncludeStorageJewelActive });
+    queueJewelCmd({ action: 'fuse', allowedTiers: autoFuseAllowedTiers, includeStorage: isIncludeStorageJewelActive, preservedTypes: autoFusePreservedJewelTypes });
   }
   scheduleNextPoll(100);
 }
@@ -23975,6 +24654,7 @@ function triggerWithdrawSingleType(itemTid, name) {
 function renderJewelSection() {
   updateJewelSwitches();
   renderJewelTierCheckboxes();
+  renderJewelPreserveSettings();
   renderJewelLogs();
   if (typeof updateJewelNoticeBanner === 'function') updateJewelNoticeBanner();
   
@@ -24083,20 +24763,23 @@ function renderTierOverview(jewels) {
 
   const tierLabels = isEn ? tierLabelsEn : tierLabelsVi;
 
-  // Aggregate by rating (tracking unlocked fuse pool vs locked count)
+  // Aggregate by rating (tracking unlocked fuse pool vs locked count and preserved count)
   const stats = {
-    1: { inv: 0, storage: 0, equip: 0, locked: 0 },
-    2: { inv: 0, storage: 0, equip: 0, locked: 0 },
-    3: { inv: 0, storage: 0, equip: 0, locked: 0 },
-    4: { inv: 0, storage: 0, equip: 0, locked: 0 },
-    5: { inv: 0, storage: 0, equip: 0, locked: 0 },
-    6: { inv: 0, storage: 0, equip: 0, locked: 0 }
+    1: { inv: 0, storage: 0, equip: 0, locked: 0, preserved: 0 },
+    2: { inv: 0, storage: 0, equip: 0, locked: 0, preserved: 0 },
+    3: { inv: 0, storage: 0, equip: 0, locked: 0, preserved: 0 },
+    4: { inv: 0, storage: 0, equip: 0, locked: 0, preserved: 0 },
+    5: { inv: 0, storage: 0, equip: 0, locked: 0, preserved: 0 },
+    6: { inv: 0, storage: 0, equip: 0, locked: 0, preserved: 0 }
   };
 
   for (let j of jewels) {
     const r = j.rating || 1;
     if (stats[r]) {
+      const isPres = typeof isJewelPreserved === 'function' && isJewelPreserved(j);
       if (j.isLock) stats[r].locked++;
+      else if (isPres) stats[r].preserved++;
+
       if (j.location === 1) stats[r].inv++;
       else if (j.location === 2) stats[r].storage++;
       else if (j.location === 3) stats[r].equip++;
@@ -24107,7 +24790,7 @@ function renderTierOverview(jewels) {
   for (let t = 1; t <= 6; t++) {
     const s = stats[t];
     const totalPool = s.inv + (isIncludeStorageJewelActive ? s.storage : 0);
-    const availablePool = Math.max(0, totalPool - s.locked);
+    const availablePool = Math.max(0, totalPool - s.locked - (s.preserved || 0));
     const sets = Math.floor(availablePool / 6);
     const remainder = availablePool % 6;
     const canFuse = sets > 0 && t < 6;
@@ -24116,7 +24799,8 @@ function renderTierOverview(jewels) {
 
     let statusText = '';
     let btnHtml = '';
-    const lockedNote = s.locked > 0 ? (' <span style="color:#ffa657; font-size:11px;">(🔒 ' + s.locked + (isEn ? ' locked' : ' đã khóa') + ')</span>') : '';
+    const lockedNote = (s.locked > 0 ? (' <span style="color:#ffa657; font-size:11px;">(🔒 ' + s.locked + (isEn ? ' locked' : ' đã khóa') + ')</span>') : '') +
+      ((s.preserved || 0) > 0 ? (' <span style="color:#7ee787; font-size:11px;">(🛡️ ' + s.preserved + (isEn ? ' preserved' : ' giữ lại') + ')</span>') : '');
 
     if (t === 6) {
       statusText = isEn ? '<span style="color:#8b949e; font-size:11.5px;">⭐ Max Tier</span>' : '<span style="color:#8b949e; font-size:11.5px;">⭐ Cấp tối đa</span>';
@@ -24292,12 +24976,14 @@ function renderJewelTable() {
       actionBtns.push(isEn ? '<span style="font-size:11.5px; color:#484f58;">Inlaid</span>' : '<span style="font-size:11.5px; color:#484f58;">Đang khảm</span>');
     }
 
+    const isPres = typeof isJewelPreserved === 'function' && isJewelPreserved({ itemTid: g.itemTid });
+    const preservedBadge = isPres ? (' <span style="color:#7ee787; font-size:11px; background:rgba(126,231,135,0.15); border:1px solid rgba(126,231,135,0.35); border-radius:4px; padding:1px 5px; font-weight:bold;" title="' + (isEn ? 'Preserved jewel type - will not be fused' : 'Ngọc được bảo vệ - không tự ghép') + '">🛡️ ' + (isEn ? 'Preserved' : 'Giữ lại') + '</span>') : '';
     return '<tr>' +
       '<td style="text-align:center; color:#8b949e;">' + (idx + 1) + '</td>' +
       '<td>' +
         '<div style="display:flex; align-items:center; gap:10px;">' +
           iconHtml +
-          '<div><b style="color:#f0f6fc;">' + g.name + '</b>' + (g.locked > 0 ? (' <span style="color:#ffa657; font-size:11px; background:rgba(255,166,87,0.15); border:1px solid rgba(255,166,87,0.35); border-radius:4px; padding:1px 5px; font-weight:bold;" title="' + (isEn ? 'Locked jewels will not be fused' : 'Ngọc đã khóa - không bị ghép') + '">🔒 ' + g.locked + '</span>') : '') + '<br><span style="font-size:11px; color:#8b949e;">ID: ' + g.itemTid + '</span></div>' +
+          '<div><b style="color:#f0f6fc;">' + g.name + '</b>' + (g.locked > 0 ? (' <span style="color:#ffa657; font-size:11px; background:rgba(255,166,87,0.15); border:1px solid rgba(255,166,87,0.35); border-radius:4px; padding:1px 5px; font-weight:bold;" title="' + (isEn ? 'Locked jewels will not be fused' : 'Ngọc đã khóa - không bị ghép') + '">🔒 ' + g.locked + '</span>') : '') + preservedBadge + '<br><span style="font-size:11px; color:#8b949e;">ID: ' + g.itemTid + '</span></div>' +
         '</div>' +
       '</td>' +
       '<td><span class="gear-tier-badge t' + g.rating + '">Tier ' + g.rating + '</span></td>' +
@@ -28265,9 +28951,9 @@ window.GenesisGameBridge = {
           deployedSkills: deployedSkills,
           systemsData: systemsData,
           altarLevel: altarLevel,
-          launcherVersion: '3.4',
-          hookVersion: '3.4',
-          bridgeVersion: '3.4',
+          launcherVersion: '3.5',
+          hookVersion: '3.5',
+          bridgeVersion: '3.5',
           isLiveConnected: true,
           exportedAt: new Date().toISOString()
         });
@@ -28285,9 +28971,9 @@ window.GenesisGameBridge = {
 
   applyLiveProfile: function(data) {
     if (!data) return;
-    data.launcherVersion = data.launcherVersion || '3.4';
-    data.hookVersion = data.hookVersion || '3.4';
-    data.bridgeVersion = data.bridgeVersion || '3.4';
+    data.launcherVersion = data.launcherVersion || '3.5';
+    data.hookVersion = data.hookVersion || '3.5';
+    data.bridgeVersion = data.bridgeVersion || '3.5';
     data.isLiveConnected = true;
     const highestTid = Number(data.clearStageTid || data.stageTid || (window.userSaveProfile && (window.userSaveProfile.clearStageTid || window.userSaveProfile.stageTid)) || 14410);
     if (!data.clearStageTid && highestTid) data.clearStageTid = highestTid;
@@ -28608,18 +29294,228 @@ function openUpdateNoticeModal(forceOpen) {
 }
 
 function closeUpdateNoticeModal() {
-  try {
-    localStorage.setItem('genesis_update_notice_dismissed_v20260920', 'true');
-    localStorage.setItem('genesis_update_notice_dismissed_v34', 'true');
-  } catch(e) {}
+  const chk = document.getElementById('updateNoticeDontShowCheckbox');
+  if (chk && chk.checked) {
+    try {
+      localStorage.setItem('genesis_update_notice_dismissed_v20260920', 'true');
+      localStorage.setItem('genesis_update_notice_dismissed_v34', 'true');
+      localStorage.setItem('genesis_update_notice_dismissed_v35', 'true');
+    } catch(e) {}
+  }
   const modal = document.getElementById('updateNoticeModal');
   if (modal) modal.style.display = 'none';
 }
 
+
+const UPDATE_NOTICE_DATA_I18N = {
+  "vi": {
+    "warnTitle": "CẢNH BÁO BẮT BUỘC: HÃY CẬP NHẬT LẠI SCRIPT NẾU BẠN CHƯA UPDATE!",
+    "warnBody": "Tính năng <b>Giữ Ngọc Đặc Thù</b> yêu cầu bản in-game hook mới trong game để bảo vệ ngọc khỏi bị lò rèn tự động gắp. <b>Nếu bạn chưa chạy script mới</b> (vẫn đang chạy bản cũ v3.3 hoặc v3.4), game sẽ <b>CHƯA NHẬN DIỆN</b> danh sách ngọc giữ và có thể ghép nhầm ngọc quý của bạn!",
+    "warnTip": "👉 <b>Vui lòng tải lại gói <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> bên dưới</b>, giải nén đè vào thư mục game Steam và chạy lại <code style=\"color:#58a6ff; font-weight:bold;\">cai_dat_livesync.bat</code> ngay hôm nay để được bảo vệ tuyệt đối!",
+    "featuresTitle": "Các Điểm Mới Trong Bản Cập Nhật v3.5:",
+    "features": [
+      "<b>🛡️ Tùy Chọn Giữ Ngọc Theo Từng Bậc (Tier 1 -> Tier 6):</b> Bạn có thể chọn giữ riêng bất kỳ bậc nào của 14 loại ngọc (ví dụ: giữ Đấu Tranh T3 nhưng cho phép tự do ghép T1-T2). Bấm trực tiếp vào các nút <code>T1</code> - <code>T6</code> trên bảng cài đặt, nút chuyển sang màu xanh lá kèm icon khiên <code>🛡️</code> là ngọc đó được bảo vệ.",
+      "<b>⚔️ Lò Rèn Thông Minh & An Toàn 2 Lớp:</b> Hệ thống tự động lọc bỏ mọi viên ngọc đã được chọn giữ, đảm bảo cả trên Web lẫn Hook trong game tuyệt đối không dùng ngọc quý làm nguyên liệu ghép.",
+      "<b>🔍 Tooltip Ảnh Lớn & Chỉ Số Buff Chi Tiết:</b> Rê chuột vào ảnh ngọc hoặc từng nút Tier để xem ảnh phóng to 46px và chi tiết các dòng buff (Tấn công, Sát thương chí mạng, Kháng tính...) từ Database.",
+      "<b>⚡ Nút Cấu Hình Nhanh (Presets):</b> 1-click chọn nhanh theo build Sát Thương (DPS), Phòng Thủ (Tank), Giữ Tất Cả, hoặc Bỏ Giữ.",
+      "<b>🎨 Giao Diện Phóng To & Tinh Gọn:</b> Khung cài đặt và icon ngọc 40px to rõ ràng, loại bỏ checkbox thừa giúp thao tác mượt mà, trực quan."
+    ],
+    "guideTitle": "Hướng Dẫn Cập Nhật Nhanh (Chỉ Mất ~10 Giây):",
+    "guideSteps": [
+      "Bấm nút màu xanh <b>\"Tải Script Mới (.ZIP)\"</b> ở bên dưới.",
+      "Mở thư mục cài đặt game trên Steam (nơi chứa file <code>Genesis.exe</code>).",
+      "Giải nén đè cả 3 file vào thư mục game: <code style=\"color:#58a6ff;\">cai_dat_livesync.bat</code>, <code style=\"color:#58a6ff;\">install_game_hook_v2.js</code>, <code style=\"color:#58a6ff;\">livesync_bridge.js</code>.",
+      "Nhấp đúp chạy <code style=\"color:#7ee787; font-weight:bold;\">cai_dat_livesync.bat</code> và quay lại web trải nghiệm tính năng mới!"
+    ],
+    "disclaimerTitle": "LƯU Ý QUAN TRỌNG (USE AT YOUR OWN RISK):",
+    "disclaimerText": "Các công cụ đọc dữ liệu bộ nhớ và hỗ trợ tự động được phát triển nhằm mục đích phi thương mại để cộng đồng tham khảo và phân tích lối chơi. <b>Vui lòng sử dụng với sự tự chịu trách nhiệm của bạn (Use at your own risk).</b> Tác giả không chịu trách nhiệm đối với bất kỳ rủi ro nào liên quan đến tài khoản game của bạn."
+  },
+  "en": {
+    "warnTitle": "MANDATORY WARNING: PLEASE UPDATE YOUR SCRIPT IF NOT UPDATED YET!",
+    "warnBody": "The <b>Granular Jewel Preservation</b> feature requires the updated in-game hook to protect your jewels from auto-fusion. <b>If you are still running an older script</b> (v3.3 or older v3.4), the game hook <b>WILL NOT RECOGNIZE</b> your preserved list and may accidentally fuse your valuable jewels!",
+    "warnTip": "👉 <b>Please download <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> below</b>, extract and overwrite all files into your Steam game folder, and run <code style=\"color:#58a6ff; font-weight:bold;\">cai_dat_livesync.bat</code> today!",
+    "featuresTitle": "What's New in System Update v3.5:",
+    "features": [
+      "<b>🛡️ Granular Jewel Tier Preservation (Tier 1 -> Tier 6):</b> Selectively keep specific tiers for each of the 14 jewel types (e.g. keep Strife T3 but allow T1-T2 to be fused). Simply click the <code>T1</code> - <code>T6</code> buttons, which turn green with a shield <code>🛡️</code> icon when preserved.",
+      "<b>⚔️ Smart Forge & Dual-Layer Protection:</b> Both web client and in-game hook automatically exclude preserved jewels from fusion staging. Your precious jewels will never be consumed!",
+      "<b>🔍 Large Icon & Stat Buff Tooltip:</b> Hover over any jewel icon or tier button to view an enlarged 46px icon and detailed stat buff values from the database.",
+      "<b>⚡ 1-Click Quick Presets:</b> Instant setup for DPS Build, Tank Build, Protect All, or Clear All.",
+      "<b>🎨 Spacious High-Visibility UI:</b> Prominent 40px icons, cleaner card layout without redundant checkboxes."
+    ],
+    "guideTitle": "Quick Update Instructions (~10 Seconds):",
+    "guideSteps": [
+      "Download <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> using the button below.",
+      "Open your Steam game directory (where <code>Genesis.exe</code> is located).",
+      "Extract and overwrite all 3 files: <code style=\"color:#58a6ff;\">cai_dat_livesync.bat</code>, <code style=\"color:#58a6ff;\">install_game_hook_v2.js</code>, <code style=\"color:#58a6ff;\">livesync_bridge.js</code>.",
+      "Double-click <code style=\"color:#7ee787; font-weight:bold;\">cai_dat_livesync.bat</code> and enjoy the new features!"
+    ],
+    "disclaimerTitle": "IMPORTANT DISCLAIMER (USE AT YOUR OWN RISK):",
+    "disclaimerText": "Data reading and automation utilities are non-commercial tools developed for game analysis and community research. <b>Please use them entirely at your own risk.</b> The developer assumes no responsibility for any in-game actions or account penalties."
+  },
+  "pt": {
+    "warnTitle": "AVISO OBRIGATÓRIO: ATUALIZE SEU SCRIPT SE AINDA NÃO ATUALIZOU!",
+    "warnBody": "O recurso de <b>Preservação Granular de Joias</b> requer o novo hook no jogo para proteger suas joias da forja automática. <b>Se você ainda estiver executando um script antigo</b> (v3.3 ou v3.4), o hook do jogo <b>NÃO RECONHECERÁ</b> sua lista de preservadas e poderá fundir joias valiosas por engano!",
+    "warnTip": "👉 <b>Baixe o pacote <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> abaixo</b>, extraia e substitua na pasta do jogo Steam e execute <code style=\"color:#58a6ff; font-weight:bold;\">cai_dat_livesync.bat</code> hoje mesmo!",
+    "featuresTitle": "Novidades na Atualização v3.5:",
+    "features": [
+      "<b>🛡️ Preservação Granular de Joias (Tier 1 -> Tier 6):</b> Escolha manter tiers específicos para qualquer uma das 14 joias (ex.: manter Strife T3 mas fundir T1-T2). Clique diretamente nos botões <code>T1</code> - <code>T6</code>.",
+      "<b>⚔️ Forja Inteligente & Proteção Dupla:</b> O cliente web e o hook no jogo excluem automaticamente joias preservadas da fila de fusão.",
+      "<b>🔍 Tooltip com Ícone Grande & Buffs Detalhados:</b> Passe o mouse sobre o ícone ou botões de tier para ver imagem ampliada de 46px e todos os atributos de buff.",
+      "<b>⚡ Predefinições Rápidas (Presets):</b> 1 clique para Build DPS, Build Tank, Proteger Tudo ou Limpar.",
+      "<b>🎨 Interface Mais Ampla & Limpa:</b> Ícones ampliados de 40px e remoção de caixas de seleção desnecessárias."
+    ],
+    "guideTitle": "Guia de Atualização Rápida (~10 Segundos):",
+    "guideSteps": [
+      "Clique no botão <b>\"Baixar Novo Script (.ZIP)\"</b> abaixo.",
+      "Abra a pasta do jogo na Steam (onde fica o <code>Genesis.exe</code>).",
+      "Extraia e substitua os 3 arquivos: <code style=\"color:#58a6ff;\">cai_dat_livesync.bat</code>, <code style=\"color:#58a6ff;\">install_game_hook_v2.js</code>, <code style=\"color:#58a6ff;\">livesync_bridge.js</code>.",
+      "Execute <code style=\"color:#7ee787; font-weight:bold;\">cai_dat_livesync.bat</code> e aproveite as novidades!"
+    ],
+    "disclaimerTitle": "AVISO IMPORTANTE (USE AT YOUR OWN RISK):",
+    "disclaimerText": "Ferramentas de sincronização e análise de dados são utilitários não comerciais para a comunidade. <b>Use sob sua própria responsabilidade (Use at your own risk).</b> O desenvolvedor não se responsabiliza por eventuais consequências no jogo."
+  },
+  "tr": {
+    "warnTitle": "ZORUNLU UYARI: HENÜZ GÜNCELLEMEDİYSENİZ LÜTFEN SCRIPTI GÜNCELLEYİN!",
+    "warnBody": "<b>Kademeli Mücevher Koruma</b> özelliği, mücevherlerinizin otomatik birleştirmede erimesini önlemek için yeni oyun içi hook gerektirir. <b>Eski bir script çalıştırıyorsanız</b> (v3.3 veya v3.4), oyun hook'u korunan mücevher listenizi <b>TANIMAYACAKTIR</b> ve değerli mücevherlerinizi yanlışlıkla birleştirebilir!",
+    "warnTip": "👉 <b>Lütfen aşağıdaki <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> paketini indirin</b>, Steam oyun klasörüne çıkartıp üzerine yazın ve <code style=\"color:#58a6ff; font-weight:bold;\">cai_dat_livesync.bat</code> dosyasını çalıştırın!",
+    "featuresTitle": "v3.5 Güncellemesindeki Yenilikler:",
+    "features": [
+      "<b>🛡️ Kademeli Mücevher Koruma (Tier 1 -> Tier 6):</b> 14 mücevher türünün her biri için istediğiniz kademeleri koruyun. <code>T1</code> - <code>T6</code> butonlarına tıklayın (yeşil kalkan = korumalı).",
+      "<b>⚔️ Akıllı Demirci & Çift Katmanlı Koruma:</b> Korunan mücevherler web ve oyun içi hook tarafından otomatik olarak hariç tutulur.",
+      "<b>🔍 Büyük Simge & Detaylı Buff İpucu:</b> 46px büyütülmüş simge ve veritabanı buff değerlerini görmek için fareyi üzerine getirin.",
+      "<b>⚡ Hızlı Hazır Ayarlar (Presets):</b> DPS Dizilimi, Tank Dizilimi, Tümünü Koru veya Temizle için tek tık.",
+      "<b>🎨 Ferah ve Sade Arayüz:</b> 40px büyük simgeler ve gereksiz onay kutularından arındırılmış temiz tasarım."
+    ],
+    "guideTitle": "Hızlı Güncelleme Rehberi (~10 Saniye):",
+    "guideSteps": [
+      "Aşağıdaki <b>\"Yeni Scripti İndir (.ZIP)\"</b> butonuna tıklayın.",
+      "Steam oyun klasörünüzü açın (<code>Genesis.exe</code> bulunduğu yer).",
+      "3 dosyayı çıkarıp üzerine yazın: <code style=\"color:#58a6ff;\">cai_dat_livesync.bat</code>, <code style=\"color:#58a6ff;\">install_game_hook_v2.js</code>, <code style=\"color:#58a6ff;\">livesync_bridge.js</code>.",
+      "<code style=\"color:#7ee787; font-weight:bold;\">cai_dat_livesync.bat</code> dosyasını çalıştırın ve yeni özelliklerin tadını çıkarın!"
+    ],
+    "disclaimerTitle": "ÖNEMLİ BİLGİLENDİRME (USE AT YOUR OWN RISK):",
+    "disclaimerText": "Veri okuma ve otomasyon araçları ticari olmayan topluluk analiz araçlarıdır. <b>Kullanım tamamen sizin sorumluluğunuzdadır (Use at your own risk).</b> Oyun hesabınızla ilgili risklerden geliştirici sorumlu tutulamaz."
+  },
+  "th": {
+    "warnTitle": "คำเตือนสำคัญ: โปรดอัปเดตสคริปต์ใหม่หากคุณยังไม่ได้อัปเดต!",
+    "warnBody": "ฟีเจอร์ <b>รักษากลุ่มอัญมณี</b> ต้องใช้ in-game hook ตัวใหม่เพื่อป้องกันไม่ให้อัญมณีถูกหลอมรวมอัตโนมัติ <b>หากคุณยังใช้สคริปต์เวอร์ชันเก่า</b> (v3.3 หรือ v3.4) ตัวเกมจะ <b>ไม่รู้จัก</b> รายการอัญมณีที่เลือกเก็บไว้และอาจหลอมอัญมณีมีค่าของคุณโดยไม่ตั้งใจ!",
+    "warnTip": "👉 <b>โปรดดาวน์โหลดแพ็กเกจ <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> ด้านล่าง</b> แตกไฟล์ทับในโฟลเดอร์เกม Steam และรัน <code style=\"color:#58a6ff; font-weight:bold;\">cai_dat_livesync.bat</code> วันนี้!",
+    "featuresTitle": "มีอะไรใหม่ในการอัปเดต v3.5:",
+    "features": [
+      "<b>🛡️ รักษากลุ่มอัญมณีตามระดับ Tier (Tier 1 -> Tier 6):</b> เลือกเก็บเฉพาะระดับของอัญมณี 14 ชนิดได้อย่างอิสระ เพียงคลิกปุ่ม <code>T1</code> - <code>T6</code> (ปุ่มเขียวมีโล่ = ปลอดภัย)",
+      "<b>⚔️ โรงหลอมอัจฉริยะ & ปกป้อง 2 ชั้น:</b> ระบบตัดอัญมณีที่เลือกเก็บออกจากคิวหลอมรวมโดยอัตโนมัติ ทั้งบนเว็บและในเกม",
+      "<b>🔍 ทูลทิปไอคอนใหญ่ & สเตตัสบัฟละเอียด:</b> วางเมาส์เหนือไอคอนหรือปุ่ม Tier เพื่อดูรูป 46px และค่าสเตตัสบัฟจากฐานข้อมูล",
+      "<b>⚡ พรีเซ็ตด่วน 1-Click:</b> ตั้งค่าบิลด์ DPS, Tank, เก็บทั้งหมด หรือล้างทั้งหมดได้ทันที",
+      "<b>🎨 หน้าต่างใช้งานใหญ่และสบายตา:</b> ไอคอนขนาดใหญ่ 40px ตัดช่องติ๊กที่ไม่จำเป็นออกเพื่อความลื่นไหล"
+    ],
+    "guideTitle": "วิธีอัปเดตอย่างรวดเร็ว (~10 วินาที):",
+    "guideSteps": [
+      "คลิกปุ่มสีเขียว <b>\"ดาวน์โหลดสคริปต์ใหม่ (.ZIP)\"</b> ด้านล่าง",
+      "เปิดโฟลเดอร์เกม Steam (ตำแหน่งที่มี <code>Genesis.exe</code>)",
+      "แตกไฟล์ทับทั้ง 3 ไฟล์: <code style=\"color:#58a6ff;\">cai_dat_livesync.bat</code>, <code style=\"color:#58a6ff;\">install_game_hook_v2.js</code>, <code style=\"color:#58a6ff;\">livesync_bridge.js</code>",
+      "ดับเบิลคลิกเปิด <code style=\"color:#7ee787; font-weight:bold;\">cai_dat_livesync.bat</code> แล้วกลับมาสนุกกับฟีเจอร์ใหม่บนเว็บ!"
+    ],
+    "disclaimerTitle": "ข้อควรระวังสำคัญ (USE AT YOUR OWN RISK):",
+    "disclaimerText": "เครื่องมือช่วยอ่านข้อมูลและวิเคราะห์เกมนี้พัฒนาขึ้นเพื่อการวิเคราะห์ทางสถิติของชุมชนโดยไม่แสวงหาผลกำไร <b>โปรดใช้งานด้วยความรับผิดชอบของคุณเอง (Use at your own risk)</b> ผู้พัฒนาไม่รับผิดชอบต่อความเสี่ยงใดๆ กับบัญชีเกมของคุณ"
+  },
+  "id": {
+    "warnTitle": "PERINGATAN WAJIB: HARAP PERBARUI SCRIPT ANDA JIKA BELUM DIPERBARUI!",
+    "warnBody": "Fitur <b>Preservasi Permata</b> membutuhkan hook in-game baru untuk melindungi permata agar tidak terpakai saat peleburan otomatis. <b>Jika Anda masih menjalankan script lama</b> (v3.3 atau v3.4), game <b>TIDAK AKAN MENGENALI</b> daftar permata yang disimpan dan mungkin melebur permata berharga Anda!",
+    "warnTip": "👉 <b>Silakan unduh paket <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> di bawah</b>, ekstrak dan timpa ke folder game Steam, lalu jalankan <code style=\"color:#58a6ff; font-weight:bold;\">cai_dat_livesync.bat</code> hari ini!",
+    "featuresTitle": "Yang Baru di Pembaruan Sistem v3.5:",
+    "features": [
+      "<b>🛡️ Preservasi Permata Berdasarkan Tier (Tier 1 -> Tier 6):</b> Pilih tier tertentu yang ingin disimpan dari 14 jenis permata. Klik langsung tombol <code>T1</code> - <code>T6</code> (hijau dengan perisai = terlindungi).",
+      "<b>⚔️ Forge Pintar & Perlindungan Ganda:</b> Klien web dan hook game secara otomatis mengecualikan permata yang dilindungi dari peleburan.",
+      "<b>🔍 Tooltip Ikon Besar & Detail Buff:</b> Arahkan kursor ke ikon untuk melihat gambar 46px dan nilai buff atribut dari database.",
+      "<b>⚡ Preset Cepat 1-Klik:</b> Opsi instan untuk Build DPS, Build Tank, Lindungi Semua, atau Hapus Semua.",
+      "<b>🎨 Tampilan Lebih Luas & Rapi:</b> Ikon besar 40px tanpa kotak centang berlebih untuk navigasi yang lancar."
+    ],
+    "guideTitle": "Panduan Pembaruan Cepat (~10 Detik):",
+    "guideSteps": [
+      "Klik tombol <b>\"Unduh Script Baru (.ZIP)\"</b> di bawah.",
+      "Buka direktori game Steam Anda (tempat file <code>Genesis.exe</code> berada).",
+      "Ekstrak dan timpa ketiga file: <code style=\"color:#58a6ff;\">cai_dat_livesync.bat</code>, <code style=\"color:#58a6ff;\">install_game_hook_v2.js</code>, <code style=\"color:#58a6ff;\">livesync_bridge.js</code>.",
+      "Klik dua kali <code style=\"color:#7ee787; font-weight:bold;\">cai_dat_livesync.bat</code> dan nikmati fitur barunya!"
+    ],
+    "disclaimerTitle": "CATATAN PENTING (USE AT YOUR OWN RISK):",
+    "disclaimerText": "Alat pembaca data dan otomasi dikembangkan untuk tujuan non-komersial bagi komunitas pemain. <b>Gunakan dengan risiko Anda sendiri (Use at your own risk).</b> Pengembang tidak bertanggung jawab atas segala konsekuensi terhadap akun game Anda."
+  },
+  "zh": {
+    "warnTitle": "強制警告：若尚未更新，請務必重新下載並更新遊戲腳本！",
+    "warnBody": "<b>寶石分階保留功能</b>需要全新的遊戲內 Hook 攔截以防止熔爐自動合並被保留的寶石。<b>如果您仍在使用舊版腳本</b>（v3.3 或舊版 v3.4），遊戲 Hook <b>將無法識別</b>保留清單，很可能誤合您的珍貴寶石！",
+    "warnTip": "👉 <b>請下載下方的 <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> 壓縮包</b>，覆蓋解壓至 Steam 遊戲目錄，並重新執行 <code style=\"color:#58a6ff; font-weight:bold;\">cai_dat_livesync.bat</code> 立即獲得完整防護！",
+    "featuresTitle": "v3.5 系統更新亮點：",
+    "features": [
+      "<b>🛡️ 寶石分階精準保留（Tier 1 -> Tier 6）：</b> 您可以自由勾選 14 種寶石的特定階級（例如：保留鬥爭 T3，但允許熔爐合成 T1-T2）。直接點擊 <code>T1</code> - <code>T6</code> 按鈕，按鈕轉為綠色盾牌圖示 <code>🛡️</code> 即代表受保護。",
+      "<b>⚔️ 智慧熔爐與雙層防護機制：</b> 網頁端與遊戲內 Hook 自動過濾已保留的寶石，絕不將珍貴寶石當作合成材料。",
+      "<b>🔍 放大圖示與詳細屬性增益提示窗：</b> 滑鼠懸停於寶石圖示或階級按鈕上即可查看 46px 放大圖示與資料庫中完整增益（攻擊、暴傷、抗性等）。",
+      "<b>⚡ 一鍵快速配置（Presets）：</b> 1 鍵快速套用輸出（DPS）、防禦（Tank）、全部保留或全部清除。",
+      "<b>🎨 放大版面與精簡操作：</b> 40px 高清晰寶石圖示，移除冗餘複選框，操作更直覺流暢。"
+    ],
+    "guideTitle": "快速更新步驟（僅需約 10 秒）：",
+    "guideSteps": [
+      "點擊下方綠色按鈕<b>「下載最新腳本 (.ZIP)」</b>。",
+      "開啟 Steam 遊戲安裝資料夾（包含 <code>Genesis.exe</code> 的位置）。",
+      "將壓縮包內的 3 個檔案覆蓋解壓至遊戲目錄：<code style=\"color:#58a6ff;\">cai_dat_livesync.bat</code>、<code style=\"color:#58a6ff;\">install_game_hook_v2.js</code>、<code style=\"color:#58a6ff;\">livesync_bridge.js</code>。",
+      "雙擊執行 <code style=\"color:#7ee787; font-weight:bold;\">cai_dat_livesync.bat</code> 並回到網頁即可享受最新功能！"
+    ],
+    "disclaimerTitle": "重要聲明 (USE AT YOUR OWN RISK)：",
+    "disclaimerText": "本數據讀取與同步工具為非商業用途之社群輔助分析軟體。<b>請自行承擔使用風險 (Use at your own risk)。</b> 作者不對任何遊戲帳號相關風險承擔責任。"
+  },
+  "ru": {
+    "warnTitle": "ВАЖНОЕ ПРЕДУПРЕЖДЕНИЕ: ОБНОВИТЕ СКРИПТ, ЕСЛИ ВЫ ЕЩЕ ЭТОГО НЕ СДЕЛАЛИ!",
+    "warnBody": "Функция <b>Выборочного сохранения самоцветов</b> требует обновленного хука в игре для защиты от автоматической плавки. <b>Если вы используете старый скрипт</b> (v3.3 или v3.4), хук <b>НЕ РАСПОЗНАЕТ</b> список сохраненных камней и может случайно объединить ценные самоцветы!",
+    "warnTip": "👉 <b>Пожалуйста, скачайте архив <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> ниже</b>, распакуйте с заменой в папку игры в Steam и запустите <code style=\"color:#58a6ff; font-weight:bold;\">cai_dat_livesync.bat</code> прямо сейчас!",
+    "featuresTitle": "Что нового в обновлении v3.5:",
+    "features": [
+      "<b>🛡️ Выборочное сохранение самоцветов по тирам (Тир 1 -> Тир 6):</b> Выбирайте конкретные тиры для каждого из 14 типов камней. Нажимайте кнопки <code>T1</code> - <code>T6</code> (зеленый щит = защита).",
+      "<b>⚔️ Умная кузница и двойная защита:</b> И веб-интерфейс, и хук автоматически исключают защищенные камни из объединения.",
+      "<b>🔍 Крупный значок и детальные характеристики:</b> Наведите курсор на камень или кнопку тира, чтобы увидеть увеличенную иконку 46px и все параметры баффов.",
+      "<b>⚡ Быстрые пресеты:</b> В 1 клик активируйте Билд на урон (DPS), Защиту (Tank), Защитить все или Сбросить.",
+      "<b>🎨 Просторный интерфейс:</b> Крупные значки 40px и очищенный дизайн без лишних чекбоксов."
+    ],
+    "guideTitle": "Быстрая инструкция по обновлению (~10 секунд):",
+    "guideSteps": [
+      "Нажмите кнопку <b>\"Скачать новый скрипт (.ZIP)\"</b> ниже.",
+      "Откройте папку игры в Steam (где находится <code>Genesis.exe</code>).",
+      "Распакуйте с заменой все 3 файла: <code style=\"color:#58a6ff;\">cai_dat_livesync.bat</code>, <code style=\"color:#58a6ff;\">install_game_hook_v2.js</code>, <code style=\"color:#58a6ff;\">livesync_bridge.js</code>.",
+      "Запустите <code style=\"color:#7ee787; font-weight:bold;\">cai_dat_livesync.bat</code> и оцените новые функции!"
+    ],
+    "disclaimerTitle": "ВАЖНОЕ ПРИМЕЧАНИЕ (USE AT YOUR OWN RISK):",
+    "disclaimerText": "Инструменты синхронизации и анализа разработаны в некоммерческих целях для сообщества. <b>Используйте на свой страх и риск (Use at your own risk).</b> Автор не несет ответственности за действия с игровым аккаунтом."
+  },
+  "es": {
+    "warnTitle": "¡ADVERTENCIA OBLIGATORIA: POR FAVOR ACTUALIZA TU SCRIPT SI AÚN NO LO HAS HECHO!",
+    "warnBody": "La función de <b>Preservación Detallada de Gemas</b> requiere el hook actualizado en el juego para proteger tus gemas de la fusión automática. <b>Si aún ejecutas un script antiguo</b> (v3.3 o v3.4), el hook <b>NO RECONOCERÁ</b> tu lista de gemas protegidas y podría fusionar gemas valiosas por error.",
+    "warnTip": "👉 <b>Descarga el paquete <code style=\"color:#7ee787; font-weight:bold;\">LiveSync_1Click.zip</code> abajo</b>, extrae y sobrescribe en la carpeta del juego de Steam y ejecuta <code style=\"color:#58a6ff; font-weight:bold;\">cai_dat_livesync.bat</code> hoy mismo.",
+    "featuresTitle": "Novedades de la Actualización v3.5:",
+    "features": [
+      "<b>🛡️ Preservación Detallada de Gemas por Nivel (Tier 1 -> Tier 6):</b> Selecciona qué niveles proteger para cada una de las 14 gemas. Haz clic en los botones <code>T1</code> - <code>T6</code> (verde con escudo = protegido).",
+      "<b>⚔️ Forja Inteligente y Doble Protección:</b> Tanto el cliente web como el hook excluyen automáticamente gemas protegidas de la cola de fusión.",
+      "<b>🔍 Icono Grande y Atributos Detallados:</b> Pasa el cursor sobre el icono para ver imagen ampliada de 46px y bonificaciones detalladas.",
+      "<b>⚡ Preajustes Rápidos en 1 Clic:</b> Configuración instantánea para Build DPS, Build Tanque, Proteger Todo o Borrar Todo.",
+      "<b>🎨 Interfaz Espaciosa y Limpia:</b> Iconos de 40px más grandes y diseño optimizado sin casillas redundantes."
+    ],
+    "guideTitle": "Guía de Actualización Rápida (~10 Segundos):",
+    "guideSteps": [
+      "Haz clic en el botón <b>\"Descargar Nuevo Script (.ZIP)\"</b> abajo.",
+      "Abre la carpeta del juego en Steam (donde se encuentra <code>Genesis.exe</code>).",
+      "Extrae y sobrescribe los 3 archivos: <code style=\"color:#58a6ff;\">cai_dat_livesync.bat</code>, <code style=\"color:#58a6ff;\">install_game_hook_v2.js</code>, <code style=\"color:#58a6ff;\">livesync_bridge.js</code>.",
+      "Ejecuta <code style=\"color:#7ee787; font-weight:bold;\">cai_dat_livesync.bat</code> y regresa a la web para disfrutar."
+    ],
+    "disclaimerTitle": "AVISO IMPORTANTE (USE AT YOUR OWN RISK):",
+    "disclaimerText": "Las herramientas de análisis y automatización son de uso no comercial para la comunidad. <b>Úsalas bajo tu propia responsabilidad (Use at your own risk).</b> El desarrollador no se responsabiliza por consecuencias en cuentas de juego."
+  }
+};
+
 function setUpdateNoticeLang(lang) {
+  lang = lang || (localStorage.getItem('genesis_helper_lang') || 'vi');
+  if (!UPDATE_NOTICE_DATA_I18N[lang]) lang = 'en';
+
   const isVi = (lang === 'vi');
   const viContent = document.getElementById('updateNoticeVi');
   const enContent = document.getElementById('updateNoticeEn');
+  const dynContent = document.getElementById('updateNoticeDynamic');
   const tabVi = document.getElementById('updateNoticeTabVi');
   const tabEn = document.getElementById('updateNoticeTabEn');
   const title = document.getElementById('updateNoticeTitle');
@@ -28627,33 +29523,112 @@ function setUpdateNoticeLang(lang) {
   const dlBtn = document.getElementById('updateNoticeDlBtnText');
   const closeBtn = document.getElementById('updateNoticeCloseBtnText');
   const dontShowLabel = document.getElementById('updateNoticeDontShowLabel');
+  const langSelect = document.getElementById('updateNoticeLangSelect');
 
-  if (viContent) viContent.style.display = isVi ? 'block' : 'none';
-  if (enContent) enContent.style.display = isVi ? 'none' : 'block';
-
+  // Update tabs/select UI
   if (tabVi) {
     tabVi.style.background = isVi ? '#1f6feb' : 'transparent';
     tabVi.style.color = isVi ? '#ffffff' : '#8b949e';
   }
   if (tabEn) {
-    tabEn.style.background = !isVi ? '#1f6feb' : 'transparent';
-    tabEn.style.color = !isVi ? '#ffffff' : '#8b949e';
+    tabEn.style.background = (lang === 'en') ? '#1f6feb' : 'transparent';
+    tabEn.style.color = (lang === 'en') ? '#ffffff' : '#8b949e';
   }
+  if (langSelect) langSelect.value = lang;
 
-  if (title) title.textContent = isVi ? 'Thông Báo Cập Nhật Hệ Thống v3.4' : 'System Update Notice v3.4';
-  if (subtitle) subtitle.textContent = isVi ? 'Ghi nhận chuẩn sát thương Boss Thế Giới & Đột Kích 100%' : '100% World Boss & Raid DPS Accuracy & LiveSync v3.4';
-  if (dlBtn) dlBtn.textContent = isVi ? 'Tải Script Mới (.ZIP)' : 'Download New Script (.ZIP)';
-  if (closeBtn) closeBtn.textContent = isVi ? 'Đã Hiểu' : 'Got It';
-  if (dontShowLabel) dontShowLabel.textContent = isVi ? 'Không hiển thị lại thông báo này' : "Don't show this announcement again";
+  const _tr = (typeof getLangTextOr === 'function') ? getLangTextOr : (function(s) { return s; });
+
+  // Set localized titles & button texts
+  if (title) title.textContent = _tr('Thông Báo Cập Nhật Hệ Thống v3.5');
+  if (subtitle) subtitle.textContent = _tr('Tính Năng Giữ Ngọc Đặc Thù Theo Từng Bậc & Tooltip Buff Chi Tiết');
+  if (dlBtn) dlBtn.textContent = _tr('Tải Script Mới (.ZIP)');
+  if (closeBtn) closeBtn.textContent = _tr('Đã Hiểu & Bắt Đầu');
+  if (dontShowLabel) dontShowLabel.textContent = _tr('Không hiển thị lại thông báo này');
+
+  // Toggle or render content
+  if (isVi) {
+    if (viContent) viContent.style.display = 'block';
+    if (enContent) enContent.style.display = 'none';
+    if (dynContent) dynContent.style.display = 'none';
+  } else if (lang === 'en') {
+    if (viContent) viContent.style.display = 'none';
+    if (enContent) enContent.style.display = 'block';
+    if (dynContent) dynContent.style.display = 'none';
+  } else {
+    if (viContent) viContent.style.display = 'none';
+    if (enContent) enContent.style.display = 'none';
+    if (dynContent) {
+      const data = UPDATE_NOTICE_DATA_I18N[lang] || UPDATE_NOTICE_DATA_I18N.en;
+      dynContent.innerHTML = (function buildUpdateNoticeBodyHtml(data) {
+  return `
+    <div style="background:#2d1517; border:1.5px solid #f85149; border-radius:10px; padding:15px; margin-bottom:14px; box-shadow:0 0 15px rgba(248,81,73,0.2);">
+      <div style="display:flex; align-items:flex-start; gap:12px;">
+        <span style="font-size:26px; line-height:1; flex-shrink:0;">🚨</span>
+        <div>
+          <b style="color:#ff7b72; font-size:14.5px;">${data.warnTitle}</b>
+          <div style="font-size:12.5px; color:#f0f6fc; line-height:1.6; margin-top:5px;">
+            ${data.warnBody}<br>
+            <div style="margin-top:6px; background:#161b22; border-left:3px solid #f85149; padding:8px 10px; border-radius:0 6px 6px 0; font-size:12px;">
+              ${data.warnTip}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#161b22; border:1px solid #238636; border-radius:10px; padding:15px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="font-size:18px;">✨</span>
+        <b style="color:#7ee787; font-size:14.5px;">${data.featuresTitle}</b>
+      </div>
+      <div style="font-size:12.5px; color:#c9d1d9; line-height:1.6;">
+        <ul style="margin:6px 0 0 0; padding-left:20px; line-height:1.7;">
+          ${data.features.map(f => `<li>${f}</li>`).join('\n          ')}
+        </ul>
+      </div>
+    </div>
+
+    <div style="background:#161b22; border:1px solid #1f6feb; border-radius:10px; padding:15px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="font-size:18px;">📦</span>
+        <b style="color:#58a6ff; font-size:14px;">${data.guideTitle}</b>
+      </div>
+      <div style="font-size:12.5px; color:#c9d1d9; line-height:1.6;">
+        <div style="background:#0d1117; border-left:3px solid #1f6feb; padding:10px 12px; margin:8px 0; border-radius:0 6px 6px 0; font-size:12px; line-height:1.6;">
+          ${data.guideSteps.map((s, idx) => `${idx + 1}. ${s}`).join('<br>\n          ')}
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#1c1308; border:1px solid #d29922; border-radius:10px; padding:14px;">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <span style="font-size:22px; flex-shrink:0;">⚠️</span>
+        <div style="font-size:12.5px; line-height:1.6;">
+          <b style="color:#e3b341; font-size:13.5px;">${data.disclaimerTitle}</b><br>
+          <span style="color:#f0f6fc;">${data.disclaimerText}</span>
+        </div>
+      </div>
+    </div>
+  `;
+})(data);
+      dynContent.style.display = 'block';
+    }
+  }
 }
 
 function checkAndShowUpdateNotice() {
-  // Silent on startup: users can click the "📢 Thông Báo Cập Nhật" button in the top navigation bar at any time.
+  try {
+    if (localStorage.getItem('genesis_update_notice_dismissed_v35') !== 'true') {
+      setTimeout(() => {
+        openUpdateNoticeModal();
+      }, 400);
+    }
+  } catch(e) {}
 }
 /* UPDATE_NOTICE_END */
 
 /* OUTDATED_BAT_NOTICE_START */
-const LATEST_BAT_LAUNCHER_VERSION = '3.4';
+const LATEST_BAT_LAUNCHER_VERSION = '3.5';
 
 function compareLauncherVersions(v1, v2) {
   if (!v1 && !v2) return 0;
@@ -28749,34 +29724,220 @@ function closeOutdatedBatModal() {
   if (modal) modal.style.display = 'none';
 }
 
+
+const OUTDATED_NOTICE_DATA_I18N = {
+  "vi": {
+    "featuresTitle": "🌟 Các tính năng mới & Bản sửa lỗi quan trọng trong bản v3.5:",
+    "features": [
+      "<b>💎 Tùy chỉnh Giữ Ngọc Đặc Thù Từng Tier (T1 - T6) & Tooltip Chi Tiết:</b> Cho phép chọn chính xác Tier nào cần giữ cho từng loại ngọc khi tự động ghép ngọc (ví dụ: giữ Đấu Tranh T3 nhưng ghép T1). Di chuột hiển thị icon lớn và toàn bộ chỉ số buff!",
+      "<b>🐉 Ghi nhận chuẩn 100% Sát Thương & Chi tiết Skill Boss Thế Giới / Đột Kích:</b> Bắt trực tiếp sát thương thực tế từng trận đánh cùng tỷ lệ sát thương từng skill theo thời gian thực!",
+      "<b>⏱️ Đồng hồ đếm ngược Event Boss Thế Giới & Đột Kích:</b> Đếm ngược thời gian thực kết thúc Boss Thế Giới (chu kỳ 4 ngày) và thời gian mở Đột Kích (chu kỳ 3 ngày).",
+      "<b>🔄 Tự động kết nối lại (Auto-reconnect 30s):</b> Tự động bấm thử lại/kết nối lại khi bị rớt mạng hoặc xuất hiện popup lỗi mạng, không lo đứt quãng khi AFK!",
+      "<b>🛡️ Lò Rèn & Kho Ngọc Tier 3:</b> Hỗ trợ tự động ghép ngọc và cất đồ Tier 3 chuẩn xác, an toàn tuyệt đối."
+    ],
+    "guideTitle": "📖 Cách cập nhật cực kỳ đơn giản (chỉ 10 giây):",
+    "guideSteps": [
+      "Bấm nút <b>\"Tải Gói Script Mới (.ZIP)\"</b> ở bên dưới.",
+      "Mở thư mục game (nơi có file <code>Genesis.exe</code>) và giải nén đè cả 3 file mới vào.",
+      "Chạy lại file <code>cai_dat_livesync.bat</code> là xong!"
+    ]
+  },
+  "en": {
+    "featuresTitle": "🌟 New Features & Critical Bug Fixes in v3.5:",
+    "features": [
+      "<b>💎 Granular Jewel Retention by Tier (T1 - T6) & Stat Buff Tooltips:</b> Customize exact tiers to preserve for each jewel type during auto-fusion. Hovering jewels shows large icon and full attribute buff info!",
+      "<b>🐉 100% Accurate World Boss & Raid DPS Tracking:</b> Direct capture of true per-match damage and live skill damage breakdown for every battle!",
+      "<b>⏱️ Real-time Event Countdowns:</b> Live countdown timers for World Boss remaining time (4-day cycle) and Raid opening time (3-day cycle).",
+      "<b>🔄 Auto-Reconnect (30s cooldown):</b> Automatically detects disconnect and network error popups, clicking retry/reconnect to keep your AFK farming uninterrupted!",
+      "<b>🛡️ Auto-Forge & Tier 3 Jewel/Storage Engine:</b> Full automated fusion and deposit support for Tier 3 items and jewels."
+    ],
+    "guideTitle": "📖 Quick 10-Second Update Guide:",
+    "guideSteps": [
+      "Click <b>\"Download New Script (.ZIP)\"</b> below.",
+      "Open your game directory (where <code>Genesis.exe</code> is located) and extract/overwrite all 3 files.",
+      "Double-click <code>cai_dat_livesync.bat</code> and you're ready!"
+    ]
+  },
+  "pt": {
+    "featuresTitle": "🌟 Novos Recursos e Correções Importantes no v3.5:",
+    "features": [
+      "<b>💎 Preservação Granular de Joias por Tier (T1 - T6) e Tooltips:</b> Escolha os tiers que deseja manter para cada joia na fusão automática. Passe o mouse para ver ícone ampliado e buffs!",
+      "<b>🐉 Registro 100% Preciso de DPS de Boss Mundial e Raid:</b> Captura de dano real por partida e divisão de dano por habilidade em tempo real!",
+      "<b>⏱️ Contadores em Tempo Real de Eventos:</b> Contagem regressiva ao vivo para Boss Mundial e Raid.",
+      "<b>🔄 Reconexão Automática (cooldown de 30s):</b> Detecta popups de queda de rede e reconecta sozinho!",
+      "<b>🛡️ Forja Automática & Depósito Tier 3:</b> Suporte completo para fusão e guarda de itens Tier 3."
+    ],
+    "guideTitle": "📖 Guia de Atualização Rápida (10 Segundos):",
+    "guideSteps": [
+      "Clique em <b>\"Baixar Novo Script (.ZIP)\"</b> abaixo.",
+      "Abra a pasta do jogo (onde fica o <code>Genesis.exe</code>) e extraia substituindo os 3 arquivos.",
+      "Execute <code>cai_dat_livesync.bat</code> novamente e pronto!"
+    ]
+  },
+  "tr": {
+    "featuresTitle": "🌟 v3.5 Güncellemesindeki Yeni Özellikler ve Düzeltmeler:",
+    "features": [
+      "<b>💎 Kademeli Mücevher Koruma (T1 - T6) ve Buff İpuçları:</b> Otomatik birleştirmede her mücevher türü için saklanacak kademeleri seçin. Üzerine gelince büyük simge ve buffları görün!",
+      "<b>🐉 %100 Doğru Dünya Bossu & Raid Hasar Takibi:</b> Maç başına gerçek hasar ve gerçek zamanlı yetenek hasar dağılımı!",
+      "<b>⏱️ Canlı Etkinlik Geri Sayımları:</b> Dünya Bossu ve Raid için gerçek zamanlı sayaçlar.",
+      "<b>🔄 Otomatik Yeniden Bağlanma (30sn bekleme):</b> Bağlantı kesilme pencerelerini otomatik onaylar!",
+      "<b>🛡️ Tier 3 Mücevher ve Depolama Desteği:</b> Tier 3 eşyalar için tam otomatik birleştirme ve kasaya koyma."
+    ],
+    "guideTitle": "📖 Kolay Güncelleme Rehberi (10 Saniye):",
+    "guideSteps": [
+      "Aşağıdaki <b>\"Yeni Scripti İndir (.ZIP)\"</b> butonuna tıklayın.",
+      "Oyun klasörünüzü açın (<code>Genesis.exe</code> dosyasının olduğu yer) ve 3 dosyayı üzerine yazın.",
+      "<code>cai_dat_livesync.bat</code> dosyasını tekrar çalıştırın!"
+    ]
+  },
+  "th": {
+    "featuresTitle": "🌟 ฟีเจอร์ใหม่และการแก้ไขข้อผิดพลาดสำคัญใน v3.5:",
+    "features": [
+      "<b>💎 รักษากลุ่มอัญมณีตามระดับชั้น (T1 - T6) และทูลทิปบัฟ:</b> เลือกเก็บเฉพาะระดับของอัญมณีที่ต้องการเพื่อไม่ให้ถูกหลอม วางเมาส์เพื่อดูรูปขยายและบัฟ!",
+      "<b>🐉 ติดตามดาเมจเวิลด์บอสและเรดแม่นยำ 100%:</b> บันทึกดาเมจจริงและแจกแจงดาเมจแต่ละสกิลแบบเรียลไทม์!",
+      "<b>⏱️ นาฬิกานับถอยหลังกิจกรรมบอส:</b> แสดงเวลานับถอยหลังสำหรับเวิลด์บอสและเรดบอสแบบเรียลไทม์",
+      "<b>🔄 เชื่อมต่อใหม่อัตโนมัติ (คูลดาวน์ 30 วินาที):</b> กดลองใหม่/เชื่อมต่อใหม่อัตโนมัติเมื่อหลุดเน็ตขณะ AFK!",
+      "<b>🛡️ โรงหลอมและคลังเก็บของ Tier 3:</b> รองรับการหลอมรวมและเก็บไอเทม Tier 3 อัตโนมัติ"
+    ],
+    "guideTitle": "📖 วิธีอัปเดตง่ายๆ (เพียง 10 วินาที):",
+    "guideSteps": [
+      "คลิกปุ่ม <b>\"ดาวน์โหลดสคริปต์ใหม่ (.ZIP)\"</b> ด้านล่าง",
+      "เปิดโฟลเดอร์เกม (ที่ตั้งไฟล์ <code>Genesis.exe</code>) แล้วแตกไฟล์ทับทั้ง 3 ไฟล์ใหม่",
+      "รันไฟล์ <code>cai_dat_livesync.bat</code> อีกครั้ง เป็นอันเสร็จสิ้น!"
+    ]
+  },
+  "id": {
+    "featuresTitle": "🌟 Fitur Baru & Perbaikan Penting di v3.5:",
+    "features": [
+      "<b>💎 Preservasi Permata Berdasarkan Tier (T1 - T6) & Tooltip Buff:</b> Tentukan tier mana yang ingin disimpan saat peleburan otomatis. Arahkan kursor untuk melihat ikon besar dan info buff!",
+      "<b>🐉 Pelacakan DPS World Boss & Raid Akurat 100%:</b> Merekam kerusakan per pertandingan dan rincian skill realtime!",
+      "<b>⏱️ Hitung Mundur Event Realtime:</b> Timer hitung mundur langsung untuk World Boss dan Raid.",
+      "<b>🔄 Sambung Ulang Otomatis (Cooldown 30s):</b> Otomatis klik coba lagi saat koneksi terputus ketika AFK!",
+      "<b>🛡️ Forge & Gudang Tier 3:</b> Dukungan penuh untuk peleburan dan penyimpanan otomatis Tier 3."
+    ],
+    "guideTitle": "📖 Cara Pembaruan Mudah (Hanya 10 Detik):",
+    "guideSteps": [
+      "Klik tombol <b>\"Unduh Script Baru (.ZIP)\"</b> di bawah.",
+      "Buka folder game (tempat file <code>Genesis.exe</code>) dan ekstrak menimpa ketiga file baru.",
+      "Jalankan kembali <code>cai_dat_livesync.bat</code> dan selesai!"
+    ]
+  },
+  "zh": {
+    "featuresTitle": "🌟 v3.5 新增功能與重大問題修復：",
+    "features": [
+      "<b>💎 寶石分階自訂保留（T1 - T6）與詳細提示窗：</b> 自動合成時可指定保留各寶石的特定階級（如保留鬥爭 T3 但合成 T1）。懸停即可檢視大圖與完整屬性數值！",
+      "<b>🐉 100% 精準世界王與突襲傷害紀錄：</b> 即時捕捉每場實戰傷害並完整解析各技能輸出比例！",
+      "<b>⏱️ 即時活動倒數計時器：</b> 即時顯示世界王剩餘時間與突襲副本開啟倒數。",
+      "<b>🔄 斷線自動重新連線（30 秒冷卻）：</b> 自動點擊重試/重新連線，AFK 掛機不再中斷！",
+      "<b>🛡️ Tier 3 裝備與寶石熔爐倉庫支援：</b> 支援 Tier 3 裝備自動合成與安全存庫。"
+    ],
+    "guideTitle": "📖 極速更新說明（僅需 10 秒）：",
+    "guideSteps": [
+      "點擊下方的<b>「下載最新腳本套件 (.ZIP)」</b>。",
+      "打開遊戲目錄（<code>Genesis.exe</code> 所在目錄）並覆蓋解壓 3 個新檔案。",
+      "重新啟動 <code>cai_dat_livesync.bat</code> 即完成更新！"
+    ]
+  },
+  "ru": {
+    "featuresTitle": "🌟 Новые функции и важные исправления в v3.5:",
+    "features": [
+      "<b>💎 Выборочное сохранение самоцветов по тирам (T1 - T6) и подсказки:</b> Настройте тиры для сохранения при автоплавке. Наведите курсор для отображения крупного значка и баффов!",
+      "<b>🐉 100% точный учет урона по Мировым боссам и в рейдах:</b> Запись реального урона каждого боя и детализация по навыкам в реальном времени!",
+      "<b>⏱️ Таймеры событий в реальном времени:</b> Обратный отсчет до окончания Мирового босса и открытия рейда.",
+      "<b>🔄 Автопереподключение (кд 30 сек):</b> Автоматически нажимает повтор при разрыве соединения во время AFK!",
+      "<b>🛡️ Кузница и склад для экипировки Тира 3:</b> Полная поддержка объединения и хранения предметов Тира 3."
+    ],
+    "guideTitle": "📖 Быстрое обновление за 10 секунд:",
+    "guideSteps": [
+      "Нажмите кнопку <b>\"Скачать новый скрипт (.ZIP)\"</b> ниже.",
+      "Откройте папку игры (где лежит <code>Genesis.exe</code>) и распакуйте с заменой 3 файла.",
+      "Снова запустите <code>cai_dat_livesync.bat</code>, и готово!"
+    ]
+  },
+  "es": {
+    "featuresTitle": "🌟 Nuevas Funciones y Correcciones Críticas en v3.5:",
+    "features": [
+      "<b>💎 Retención de Gemas por Nivel (T1 - T6) y Tooltips de Buffs:</b> Configura exactamente qué nivel conservar para cada tipo de gema al autofusionar. ¡Pasa el cursor para ver icono grande y atributos!",
+      "<b>🐉 Registro 100% Preciso de DPS de Jefe Mundial y Raid:</b> Captura directa del daño real por batalla y desglose de daño por habilidad.",
+      "<b>⏱️ Cuenta Regresiva de Eventos en Tiempo Real:</b> Temporizadores en vivo para Jefe Mundial y Raid.",
+      "<b>🔄 Reconexión Automática (cooldown 30s):</b> Detecta desconexiones y hace clic en reintentar para no interrumpir tu farmeo AFK.",
+      "<b>🛡️ Forja y Almacenamiento Tier 3:</b> Soporte automatizado completo para fusionar y guardar objetos Tier 3."
+    ],
+    "guideTitle": "📖 Guía de Actualización Rápida (10 Segundos):",
+    "guideSteps": [
+      "Haz clic en <b>\"Descargar Nuevo Script (.ZIP)\"</b> abajo.",
+      "Abre la carpeta del juego (donde está <code>Genesis.exe</code>) y extrae reemplazando los 3 archivos.",
+      "¡Ejecuta <code>cai_dat_livesync.bat</code> de nuevo y listo!"
+    ]
+  }
+};
+
 function setOutdatedBatNoticeLang(lang) {
+  lang = lang || (localStorage.getItem('genesis_helper_lang') || 'vi');
+  if (!OUTDATED_NOTICE_DATA_I18N[lang]) lang = 'en';
+
   const isVi = (lang === 'vi');
   const viContent = document.getElementById('outdatedBatVi');
   const enContent = document.getElementById('outdatedBatEn');
+  const dynContent = document.getElementById('outdatedBatDynamic');
   const tabVi = document.getElementById('outdatedBatTabVi');
   const tabEn = document.getElementById('outdatedBatTabEn');
   const title = document.getElementById('outdatedBatTitle');
   const subtitle = document.getElementById('outdatedBatSubtitle');
   const dlBtn = document.getElementById('outdatedBatDlBtnText');
   const closeBtn = document.getElementById('outdatedBatCloseBtnText');
-
-  if (viContent) viContent.style.display = isVi ? 'block' : 'none';
-  if (enContent) enContent.style.display = isVi ? 'none' : 'block';
+  const langSelect = document.getElementById('outdatedBatLangSelect');
 
   if (tabVi) {
     tabVi.style.background = isVi ? '#1f6feb' : 'transparent';
     tabVi.style.color = isVi ? '#ffffff' : '#8b949e';
   }
   if (tabEn) {
-    tabEn.style.background = !isVi ? '#1f6feb' : 'transparent';
-    tabEn.style.color = !isVi ? '#ffffff' : '#8b949e';
+    tabEn.style.background = (lang === 'en') ? '#1f6feb' : 'transparent';
+    tabEn.style.color = (lang === 'en') ? '#ffffff' : '#8b949e';
   }
+  if (langSelect) langSelect.value = lang;
 
-  if (title) title.textContent = isVi ? 'Phát Hiện File .BAT / LiveSync Bản Cũ' : 'Outdated .BAT / LiveSync Launcher Detected';
-  if (subtitle) subtitle.textContent = isVi ? 'Vui lòng cập nhật file mới để sử dụng tính năng mới & sửa lỗi quan trọng' : 'Please update to the latest script for new features & critical bug fixes';
-  if (dlBtn) dlBtn.textContent = isVi ? 'Tải Gói Script Mới (.ZIP)' : 'Download New Script (.ZIP)';
-  if (closeBtn) closeBtn.textContent = isVi ? 'Đã Hiểu / Đóng' : 'Got It / Close';
+  const _tr = (typeof getLangTextOr === 'function') ? getLangTextOr : (function(s) { return s; });
+
+  if (title) title.textContent = _tr('Phát Hiện File .BAT / LiveSync Bản Cũ');
+  if (subtitle) subtitle.textContent = _tr('Vui lòng cập nhật file mới để sử dụng tính năng mới & sửa lỗi quan trọng');
+  if (dlBtn) dlBtn.textContent = _tr('Tải Gói Script Mới (.ZIP)');
+  if (closeBtn) closeBtn.textContent = _tr('Đã Hiểu / Đóng');
+
+  if (isVi) {
+    if (viContent) viContent.style.display = 'block';
+    if (enContent) enContent.style.display = 'none';
+    if (dynContent) dynContent.style.display = 'none';
+  } else if (lang === 'en') {
+    if (viContent) viContent.style.display = 'none';
+    if (enContent) enContent.style.display = 'block';
+    if (dynContent) dynContent.style.display = 'none';
+  } else {
+    if (viContent) viContent.style.display = 'none';
+    if (enContent) enContent.style.display = 'none';
+    if (dynContent) {
+      const data = OUTDATED_NOTICE_DATA_I18N[lang] || OUTDATED_NOTICE_DATA_I18N.en;
+      dynContent.innerHTML = (function buildOutdatedNoticeBodyHtml(data) {
+  return `
+    <div style="background:#161b22; border:1px solid #30363d; border-radius:10px; padding:15px; margin-bottom:14px;">
+      <b style="color:#58a6ff; font-size:14px;">${data.featuresTitle}</b>
+      <ul style="margin:8px 0 0 0; padding-left:20px; font-size:12.5px; color:#c9d1d9; line-height:1.7;">
+        ${data.features.map(f => `<li>${f}</li>`).join('\n        ')}
+      </ul>
+    </div>
+
+    <div style="background:#0d1117; border-left:3px solid #238636; padding:12px 14px; border-radius:0 8px 8px 0; font-size:12px; color:#c9d1d9; line-height:1.6;">
+      <b style="color:#7ee787;">${data.guideTitle}</b><br>
+      ${data.guideSteps.map((s, idx) => `${idx + 1}. ${s}`).join('<br>\n      ')}
+    </div>
+  `;
+})(data);
+      dynContent.style.display = 'block';
+    }
+  }
 }
+
 /* OUTDATED_BAT_NOTICE_END */
 </script>
 
@@ -28825,18 +29986,18 @@ function setOutdatedBatNoticeLang(lang) {
 
 <!-- UPDATE NOTICE MODAL (Bilingual VI / EN with "Don't show again" option) -->
 <div id="updateNoticeModal" style="display:none; position:fixed; inset:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); z-index:10000000; justify-content:center; align-items:center; padding:16px;">
-  <div style="background:#0d1117; border:1px solid #388bfd; border-radius:14px; max-width:680px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.95); display:flex; flex-direction:column; position:relative;">
+  <div style="background:#0d1117; border:1px solid #388bfd; border-radius:14px; max-width:720px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.95); display:flex; flex-direction:column; position:relative;">
     
     <!-- Modal Header -->
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #30363d; padding:16px 20px; background:linear-gradient(180deg, #161b22 0%, #0d1117 100%);">
       <div style="display:flex; align-items:center; gap:12px;">
-        <span style="font-size:26px;">📢</span>
+        <span style="font-size:28px;">💎</span>
         <div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span style="background:rgba(227,179,65,0.2); color:#e3b341; border:1px solid #e3b341; font-size:11px; font-weight:bold; padding:2px 8px; border-radius:12px; text-transform:uppercase;">UPDATE v3.4 (24/09/2026)</span>
-            <h3 id="updateNoticeTitle" style="margin:0; font-size:17px; color:#f0f6fc; font-weight:700;">Thông Báo Cập Nhật Hệ Thống v3.4</h3>
+            <span style="background:rgba(227,179,65,0.2); color:#e3b341; border:1px solid #e3b341; font-size:11px; font-weight:bold; padding:2px 8px; border-radius:12px; text-transform:uppercase;">UPDATE v3.5 (26/09/2026)</span>
+            <h3 id="updateNoticeTitle" style="margin:0; font-size:17px; color:#f0f6fc; font-weight:700;">Thông Báo Cập Nhật Hệ Thống v3.5</h3>
           </div>
-          <div id="updateNoticeSubtitle" style="font-size:12px; color:#8b949e; margin-top:2px;">Ghi nhận chuẩn sát thương Boss Thế Giới &amp; Đột Kích 100%</div>
+          <div id="updateNoticeSubtitle" style="font-size:12px; color:#8b949e; margin-top:3px;">Tính Năng Giữ Ngọc Đặc Thù Theo Từng Bậc &amp; Tooltip Buff Chi Tiết</div>
         </div>
       </div>
       
@@ -28846,6 +30007,19 @@ function setOutdatedBatNoticeLang(lang) {
           <button type="button" id="updateNoticeTabVi" onclick="setUpdateNoticeLang('vi')" style="background:#1f6feb; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:600; padding:4px 10px; cursor:pointer; transition:all 0.2s;">🇻🇳 Tiếng Việt</button>
           <button type="button" id="updateNoticeTabEn" onclick="setUpdateNoticeLang('en')" style="background:transparent; color:#8b949e; border:none; border-radius:6px; font-size:12px; font-weight:600; padding:4px 10px; cursor:pointer; transition:all 0.2s;">🇬🇧 English</button>
         </div>
+
+          <select id="updateNoticeLangSelect" onchange="setUpdateNoticeLang(this.value)" style="background:#161b22; color:#58a6ff; border:1px solid #30363d; border-radius:6px; font-size:12px; font-weight:600; padding:3px 6px; cursor:pointer;">
+            <option value="vi">🇻🇳 Tiếng Việt</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="zh">繁體中文</option>
+            <option value="th">ไทย</option>
+            <option value="ru">Русский</option>
+            <option value="es">Español</option>
+            <option value="pt">Português</option>
+            <option value="tr">Türkçe</option>
+            <option value="id">Indonesia</option>
+          </select>
+  
         <button type="button" onclick="closeUpdateNoticeModal()" style="background:transparent; border:none; color:#8b949e; font-size:20px; cursor:pointer; padding:4px 8px; border-radius:6px; line-height:1;" title="Đóng / Close">✕</button>
       </div>
     </div>
@@ -28856,21 +30030,35 @@ function setOutdatedBatNoticeLang(lang) {
       <!-- ================= VIETNAMESE CONTENT ================= -->
       <div id="updateNoticeVi" style="display:block;">
         
-        <!-- Feature Restoration Card -->
+        <!-- Outdated Notice Warning Card (Crucial for un-updated users) -->
+        <div style="background:#2d1517; border:1.5px solid #f85149; border-radius:10px; padding:15px; margin-bottom:14px; box-shadow:0 0 15px rgba(248,81,73,0.2);">
+          <div style="display:flex; align-items:flex-start; gap:12px;">
+            <span style="font-size:26px; line-height:1; flex-shrink:0;">🚨</span>
+            <div>
+              <b style="color:#ff7b72; font-size:14.5px;">CẢNH BÁO BẮT BUỘC: HÃY CẬP NHẬT LẠI SCRIPT NẾU BẠN CHƯA UPDATE!</b>
+              <div style="font-size:12.5px; color:#f0f6fc; line-height:1.6; margin-top:5px;">
+                Tính năng <b>Giữ Ngọc Đặc Thù</b> yêu cầu bản in-game hook mới trong game để bảo vệ ngọc khỏi bị lò rèn tự động gắp. <b>Nếu bạn chưa chạy script mới</b> (vẫn đang chạy bản cũ v3.3 hoặc v3.4), game sẽ <b>CHƯA NHẬN DIỆN</b> danh sách ngọc giữ và có thể ghép nhầm ngọc quý của bạn!<br>
+                <div style="margin-top:6px; background:#161b22; border-left:3px solid #f85149; padding:8px 10px; border-radius:0 6px 6px 0; font-size:12px;">
+                  👉 <b>Vui lòng tải lại gói <code style="color:#7ee787; font-weight:bold;">LiveSync_1Click.zip</code> bên dưới</b>, giải nén đè vào thư mục game Steam và chạy lại <code style="color:#58a6ff; font-weight:bold;">cai_dat_livesync.bat</code> ngay hôm nay để được bảo vệ tuyệt đối!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Feature Spotlight Card -->
         <div style="background:#161b22; border:1px solid #238636; border-radius:10px; padding:15px; margin-bottom:14px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <span style="font-size:18px;">🟢</span>
-            <b style="color:#7ee787; font-size:14.5px;">Tất Cả Các Chức Năng Trên Website Đã Được Khôi Phục &amp; Hoạt Động Bình Thường!</b>
+            <span style="font-size:18px;">✨</span>
+            <b style="color:#7ee787; font-size:14.5px;">Các Điểm Mới Trong Bản Cập Nhật v3.5:</b>
           </div>
           <div style="font-size:12.5px; color:#c9d1d9; line-height:1.6;">
-            Chào bạn! Các tính năng nâng cao trên Web Helper đã được cập nhật và đồng bộ thời gian thực hoàn toàn:
             <ul style="margin:6px 0 0 0; padding-left:20px; line-height:1.7;">
-              <li><b>⚡ LiveSync Realtime:</b> Kết nối trực tiếp dữ liệu game mượt mà, khắc phục lỗi mất cổng kết nối.</li>
-              <li><b>⚔️ Phân Tích Sát Thương (Combat Breakdown):</b> Chuẩn công thức Wiki 100% kèm vạch đa sắc trực quan.</li>
-              <li><b>🐉 Đột Kích &amp; Boss Thế Giới:</b> Tự động nhận diện ải, ghi nhận lịch sử sát thương chuẩn xác.</li>
-              <li><b>🛡️ Lò Rèn Ghép Đồ/Ngọc Tier 3:</b> Tự động ghép an toàn tuyệt đối theo đúng cấp bậc đã chọn.</li>
-              <li><b>🌐 Build Cộng Đồng &amp; Giá Chợ Steam:</b> Đồng bộ Cloud thời gian thực và cập nhật giá item trực tiếp.</li>
-              <li><b>🎯 Chuẩn Hóa Chỉ Số:</b> Đã xóa sạch dãy số thập phân dài ngoằng và tự động đồng bộ Ải cao nhất đã vượt qua (4-10 Ác mộng).</li>
+              <li><b>🛡️ Tùy Chọn Giữ Ngọc Theo Từng Bậc (Tier 1 -> Tier 6):</b> Bạn có thể chọn giữ riêng bất kỳ bậc nào của 14 loại ngọc (ví dụ: giữ Đấu Tranh T3 nhưng cho phép tự do ghép T1-T2). Bấm trực tiếp vào các nút <code>T1</code> - <code>T6</code> trên bảng cài đặt, nút chuyển sang màu xanh lá kèm icon khiên <code>🛡️</code> là ngọc đó được bảo vệ.</li>
+              <li><b>⚔️ Lò Rèn Thông Minh &amp; An Toàn 2 Lớp:</b> Hệ thống tự động lọc bỏ mọi viên ngọc đã được chọn giữ, đảm bảo cả trên Web lẫn Hook trong game tuyệt đối không dùng ngọc quý làm nguyên liệu ghép.</li>
+              <li><b>🔍 Tooltip Ảnh Lớn &amp; Chỉ Số Buff Chi Tiết:</b> Rê chuột vào ảnh ngọc hoặc từng nút Tier để xem ảnh phóng to $46	ext{px}$ và chi tiết các dòng buff (Tấn công, Sát thương chí mạng, Kháng tính...) từ Database.</li>
+              <li><b>⚡ Nút Cấu Hình Nhanh (Presets):</b> 1-click chọn nhanh theo build Sát Thương (DPS), Phòng Thủ (Tank), Giữ Tất Cả, hoặc Bỏ Giữ.</li>
+              <li><b>🎨 Giao Diện Phóng To &amp; Tinh Gọn:</b> Khung cài đặt và icon ngọc $40	ext{px}$ to rõ ràng, loại bỏ checkbox thừa giúp thao tác mượt mà, trực quan.</li>
             </ul>
           </div>
         </div>
@@ -28879,16 +30067,14 @@ function setOutdatedBatNoticeLang(lang) {
         <div style="background:#161b22; border:1px solid #1f6feb; border-radius:10px; padding:15px; margin-bottom:14px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <span style="font-size:18px;">📦</span>
-            <b style="color:#58a6ff; font-size:14px;">Vui Lòng Tải &amp; Chạy File Script Mới Nhất Được Đặt Trên Web</b>
+            <b style="color:#58a6ff; font-size:14px;">Hướng Dẫn Cập Nhật Nhanh (Chỉ Mất ~10 Giây):</b>
           </div>
           <div style="font-size:12.5px; color:#c9d1d9; line-height:1.6;">
-            Để nhận đầy đủ các bản cập nhật và dữ liệu đồng bộ chuẩn nhất, vui lòng tải bộ cài đặt mới:
             <div style="background:#0d1117; border-left:3px solid #1f6feb; padding:10px 12px; margin:8px 0; border-radius:0 6px 6px 0; font-size:12px; line-height:1.6;">
-              <b>📖 Cách cài đặt vẫn như cũ (chỉ mất ~10 giây):</b><br>
-              1. Bấm nút tải trọn gói <code style="color:#7ee787; font-weight:bold;">LiveSync_1Click.zip</code> ở bên dưới.<br>
+              1. Bấm nút màu xanh <b>"Tải Script Mới (.ZIP)"</b> ở bên dưới.<br>
               2. Mở thư mục cài đặt game trên Steam (nơi chứa file <code>Genesis.exe</code>).<br>
               3. Giải nén đè cả 3 file vào thư mục game: <code style="color:#58a6ff;">cai_dat_livesync.bat</code>, <code style="color:#58a6ff;">install_game_hook_v2.js</code>, <code style="color:#58a6ff;">livesync_bridge.js</code>.<br>
-              4. Nhấp đúp chạy <code style="color:#7ee787; font-weight:bold;">cai_dat_livesync.bat</code> và quay lại web trải nghiệm!
+              4. Nhấp đúp chạy <code style="color:#7ee787; font-weight:bold;">cai_dat_livesync.bat</code> và quay lại web trải nghiệm tính năng mới!
             </div>
           </div>
         </div>
@@ -28906,24 +30092,44 @@ function setOutdatedBatNoticeLang(lang) {
 
       </div>
 
+      <!-- ================= DYNAMIC MULTI-LANG CONTENT ================= -->
+      <div id="updateNoticeDynamic" style="display:none;"></div>
+
+      <!-- ================= DYNAMIC MULTI-LANG CONTENT ================= -->
+      <div id="outdatedBatDynamic" style="display:none;"></div>
+
       <!-- ================= ENGLISH CONTENT ================= -->
       <div id="updateNoticeEn" style="display:none;">
         
-        <!-- Feature Restoration Card -->
+        <!-- Outdated Notice Warning Card (Crucial for un-updated users) -->
+        <div style="background:#2d1517; border:1.5px solid #f85149; border-radius:10px; padding:15px; margin-bottom:14px; box-shadow:0 0 15px rgba(248,81,73,0.2);">
+          <div style="display:flex; align-items:flex-start; gap:12px;">
+            <span style="font-size:26px; line-height:1; flex-shrink:0;">🚨</span>
+            <div>
+              <b style="color:#ff7b72; font-size:14.5px;">MANDATORY WARNING: PLEASE UPDATE YOUR SCRIPT IF NOT UPDATED YET!</b>
+              <div style="font-size:12.5px; color:#f0f6fc; line-height:1.6; margin-top:5px;">
+                The <b>Granular Jewel Preservation</b> feature requires the updated in-game hook to protect your jewels from auto-fusion. <b>If you are still running an older script</b> (v3.3 or older v3.4), the game hook <b>WILL NOT RECOGNIZE</b> your preserved list and may accidentally fuse your valuable jewels!<br>
+                <div style="margin-top:6px; background:#161b22; border-left:3px solid #f85149; padding:8px 10px; border-radius:0 6px 6px 0; font-size:12px;">
+                  👉 <b>Please download <code style="color:#7ee787; font-weight:bold;">LiveSync_1Click.zip</code> below</b>, extract and overwrite all files into your Steam game folder, and run <code style="color:#58a6ff; font-weight:bold;">cai_dat_livesync.bat</code> today!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Feature Spotlight Card -->
         <div style="background:#161b22; border:1px solid #238636; border-radius:10px; padding:15px; margin-bottom:14px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <span style="font-size:18px;">🟢</span>
-            <b style="color:#7ee787; font-size:14.5px;">All Website Features Have Been Restored &amp; Are Fully Operational!</b>
+            <span style="font-size:18px;">✨</span>
+            <b style="color:#7ee787; font-size:14.5px;">What's New in System Update v3.5:</b>
           </div>
           <div style="font-size:12.5px; color:#c9d1d9; line-height:1.6;">
-            Welcome! All advanced analysis tools on the Web Helper have been restored and updated:
             <ul style="margin:6px 0 0 0; padding-left:20px; line-height:1.7;">
-              <li><b>⚡ Real-Time LiveSync:</b> Direct game memory synchronization without drops or disconnections.</li>
-              <li><b>⚔️ Combat Breakdown &amp; DPS Calculator:</b> 100% accurate Wiki damage formulas with vibrant multi-color bars.</li>
-              <li><b>🐉 World Boss &amp; Raid Tracking:</b> Correct stage detection with complete historical damage logs.</li>
-              <li><b>🛡️ Auto-Forge &amp; Tier 3 Jewel/Equip Fusion:</b> Completely safe automatic fusion for selected tiers.</li>
-              <li><b>🌐 Community Builds &amp; Steam Market Prices:</b> Real-time Cloud syncing and live Steam item price integration.</li>
-              <li><b>🎯 Clean Stats Display:</b> Long trailing float decimals removed, and true highest cleared stage auto-synchronized.</li>
+              <li><b>🛡️ Granular Jewel Tier Preservation (Tier 1 -> Tier 6):</b> Selectively keep specific tiers for each of the 14 jewel types (e.g. keep Strife T3 but allow T1-T2 to be fused). Simply click the <code>T1</code> - <code>T6</code> buttons, which turn green with a shield <code>🛡️</code> icon when preserved.</li>
+              <li><b>⚔️ Smart Forge &amp; Dual-Layer Protection:</b> Both web client and in-game hook automatically exclude preserved jewels from fusion staging. Your precious jewels will never be consumed!</li>
+              <li><b>🔍 Large Icon &amp; Stat Buff Tooltip:</b> Hover over any jewel icon or tier button to view an enlarged $46	ext{px}$ icon and detailed stat buff values from the database.</li>
+              <li><b>⚡ 1-Click Quick Presets:</b> Instant setup for DPS Build, Tank Build, Protect All, or Clear All.</li>
+              <li><b>🎨 Spacious High-Visibility UI:</b> Prominent $40	ext{px}$ icons, cleaner card layout without redundant checkboxes.</li>
             </ul>
           </div>
         </div>
@@ -28932,16 +30138,14 @@ function setOutdatedBatNoticeLang(lang) {
         <div style="background:#161b22; border:1px solid #1f6feb; border-radius:10px; padding:15px; margin-bottom:14px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <span style="font-size:18px;">📦</span>
-            <b style="color:#58a6ff; font-size:14px;">Please Download &amp; Run the New Script File from the Website</b>
+            <b style="color:#58a6ff; font-size:14px;">Quick Update Instructions (~10 Seconds):</b>
           </div>
           <div style="font-size:12.5px; color:#c9d1d9; line-height:1.6;">
-            To receive the latest fixes and ensure full compatibility with the game, please download the updated script package:
             <div style="background:#0d1117; border-left:3px solid #1f6feb; padding:10px 12px; margin:8px 0; border-radius:0 6px 6px 0; font-size:12px; line-height:1.6;">
-              <b>📖 Installation steps remain the same (takes ~10 seconds):</b><br>
               1. Download <code style="color:#7ee787; font-weight:bold;">LiveSync_1Click.zip</code> using the button below.<br>
-              2. Open your Steam game folder (where <code>Genesis.exe</code> resides).<br>
-              3. Extract and overwrite all 3 files into the game folder: <code style="color:#58a6ff;">cai_dat_livesync.bat</code>, <code style="color:#58a6ff;">install_game_hook_v2.js</code>, <code style="color:#58a6ff;">livesync_bridge.js</code>.<br>
-              4. Double-click <code style="color:#7ee787; font-weight:bold;">cai_dat_livesync.bat</code> and enjoy the Web Helper!
+              2. Open your Steam game directory (where <code>Genesis.exe</code> is located).<br>
+              3. Extract and overwrite all 3 files: <code style="color:#58a6ff;">cai_dat_livesync.bat</code>, <code style="color:#58a6ff;">install_game_hook_v2.js</code>, <code style="color:#58a6ff;">livesync_bridge.js</code>.<br>
+              4. Double-click <code style="color:#7ee787; font-weight:bold;">cai_dat_livesync.bat</code> and enjoy the new features!
             </div>
           </div>
         </div>
@@ -28976,7 +30180,7 @@ function setOutdatedBatNoticeLang(lang) {
           <span>📦</span> <span id="updateNoticeDlBtnText">Tải Script Mới (.ZIP) / Download</span>
         </a>
         <button type="button" onclick="closeUpdateNoticeModal()" style="background:#1f6feb; border:none; color:#ffffff; font-weight:bold; font-size:13px; padding:8px 18px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;" onmouseover="this.style.background='#388bfd'" onmouseout="this.style.background='#1f6feb'">
-          <span>✓</span> <span id="updateNoticeCloseBtnText">Đã Hiểu / Got It</span>
+          <span>✓</span> <span id="updateNoticeCloseBtnText">Đã Hiểu &amp; Bắt Đầu / Got It</span>
         </button>
       </div>
 
@@ -28984,7 +30188,6 @@ function setOutdatedBatNoticeLang(lang) {
 
   </div>
 </div>
-
 <!-- OUTDATED BAT / LAUNCHER NOTICE MODAL (Bilingual VI / EN) -->
 <div id="outdatedBatModal" style="display:none; position:fixed; inset:0; width:100%; height:100%; background:rgba(0,0,0,0.88); backdrop-filter:blur(6px); z-index:10000002; justify-content:center; align-items:center; padding:16px;">
   <div style="background:#0d1117; border:1px solid #f85149; border-radius:14px; max-width:680px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.95); display:flex; flex-direction:column; position:relative;">
@@ -29008,6 +30211,19 @@ function setOutdatedBatNoticeLang(lang) {
           <button type="button" id="outdatedBatTabVi" onclick="setOutdatedBatNoticeLang('vi')" style="background:#1f6feb; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:600; padding:4px 10px; cursor:pointer; transition:all 0.2s;">🇻🇳 Tiếng Việt</button>
           <button type="button" id="outdatedBatTabEn" onclick="setOutdatedBatNoticeLang('en')" style="background:transparent; color:#8b949e; border:none; border-radius:6px; font-size:12px; font-weight:600; padding:4px 10px; cursor:pointer; transition:all 0.2s;">🇬🇧 English</button>
         </div>
+
+          <select id="outdatedBatLangSelect" onchange="setOutdatedBatNoticeLang(this.value)" style="background:#161b22; color:#58a6ff; border:1px solid #30363d; border-radius:6px; font-size:12px; font-weight:600; padding:3px 6px; cursor:pointer;">
+            <option value="vi">🇻🇳 Tiếng Việt</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="zh">繁體中文</option>
+            <option value="th">ไทย</option>
+            <option value="ru">Русский</option>
+            <option value="es">Español</option>
+            <option value="pt">Português</option>
+            <option value="tr">Türkçe</option>
+            <option value="id">Indonesia</option>
+          </select>
+  
         <button type="button" onclick="closeOutdatedBatModal()" style="background:transparent; border:none; color:#8b949e; font-size:20px; cursor:pointer; padding:4px 8px; border-radius:6px; line-height:1;" title="Đóng / Close">✕</button>
       </div>
     </div>
@@ -29029,7 +30245,7 @@ function setOutdatedBatNoticeLang(lang) {
           <span style="font-size:20px;">🚀</span>
           <div>
             <div style="font-size:12px; color:#8b949e;">Phiên bản mới nhất trên Web / Latest:</div>
-            <div id="outdatedBatLatestVer" style="font-size:15px; font-weight:bold; color:#56d364;">v3.4</div>
+            <div id="outdatedBatLatestVer" style="font-size:15px; font-weight:bold; color:#56d364;">v3.5</div>
           </div>
         </div>
       </div>
@@ -29038,7 +30254,7 @@ function setOutdatedBatNoticeLang(lang) {
       <div id="outdatedBatVi" style="display:block;">
         
         <div style="background:#161b22; border:1px solid #30363d; border-radius:10px; padding:15px; margin-bottom:14px;">
-          <b style="color:#58a6ff; font-size:14px;">🌟 Các tính năng mới &amp; Bản sửa lỗi quan trọng trong bản v3.4:</b>
+          <b style="color:#58a6ff; font-size:14px;">🌟 Các tính năng mới &amp; Bản sửa lỗi quan trọng trong bản v3.5:</b>
           <ul style="margin:8px 0 0 0; padding-left:20px; font-size:12.5px; color:#c9d1d9; line-height:1.7;">
             <li><b>🐉 Ghi nhận chuẩn 100% Sát Thương &amp; Chi tiết Skill Boss Thế Giới / Đột Kích:</b> Bắt trực tiếp sát thương thực tế từng trận đánh (kể cả không phá kỷ lục cũ) cùng tỷ lệ sát thương từng skill theo thời gian thực!</li>
             <li><b>⏱️ Đồng hồ đếm ngược Event Boss Thế Giới &amp; Đột Kích:</b> Đếm ngược thời gian thực kết thúc Boss Thế Giới (chu kỳ 4 ngày) và thời gian mở Đột Kích (chu kỳ 3 ngày).</li>
@@ -29060,7 +30276,7 @@ function setOutdatedBatNoticeLang(lang) {
       <div id="outdatedBatEn" style="display:none;">
         
         <div style="background:#161b22; border:1px solid #30363d; border-radius:10px; padding:15px; margin-bottom:14px;">
-          <b style="color:#58a6ff; font-size:14px;">🌟 New Features &amp; Critical Bug Fixes in v3.4:</b>
+          <b style="color:#58a6ff; font-size:14px;">🌟 New Features &amp; Critical Bug Fixes in v3.5:</b>
           <ul style="margin:8px 0 0 0; padding-left:20px; font-size:12.5px; color:#c9d1d9; line-height:1.7;">
             <li><b>🐉 100% Accurate World Boss &amp; Raid DPS Tracking:</b> Direct capture of true per-match damage and live skill damage breakdown for every battle!</li>
             <li><b>⏱️ Real-time Event Countdowns:</b> Live countdown timers for World Boss remaining time (4-day cycle) and Raid opening time (3-day cycle).</li>
@@ -29093,5 +30309,8 @@ function setOutdatedBatNoticeLang(lang) {
   </div>
 </div>
 
+
+<!-- FLOATING JEWEL BUFF TOOLTIP -->
+<div id="jewelBuffTooltip" style="position:fixed; display:none; z-index:999999; background:#161b22; border:1px solid #30363d; border-radius:8px; padding:10px 14px; box-shadow:0 8px 24px rgba(0,0,0,0.7); max-width:320px; font-size:12px; line-height:1.45; color:#c9d1d9; backdrop-filter:blur(8px);"></div>
 </body>
 </html>
