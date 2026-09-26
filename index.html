@@ -19718,8 +19718,10 @@ function renderStageTable() {
     curEps = currentStageObj.calc_eps;
     if (curGps === undefined) {
       const curSec = estimateStageClearTime(currentStageObj, currentDps);
-      curGps = ((currentStageObj.total_gold || 1000) / curSec);
-      curEps = (((currentStageObj.total_exp || 0) || 1000) / curSec);
+      const curEffGold = typeof calculateEffectiveStageGold === 'function' ? calculateEffectiveStageGold(currentStageObj, userProfile?.stats).totalGold : (currentStageObj.total_gold || 1000);
+      curGps = ((curEffGold || 1000) / curSec);
+      const curEffExp = typeof calculateEffectiveStageExp === 'function' ? calculateEffectiveStageExp(currentStageObj, userProfile?.stats).totalExp : (currentStageObj.total_exp || 1000);
+      curEps = ((curEffExp || 1000) / curSec);
     }
     window.__currentEps = parseFloat(curEps.toFixed(2));
     if (document.getElementById('cardCurrentGold')) {
@@ -21894,7 +21896,7 @@ function getSmartAnalysisData() {
   const dmgMult = breakdown.dmgMult || (1.0 + dmgBonusFrac);
 
   // Live data from poll & history
-  const liveExpPerSec = profile.liveExpPerSec || (profile.combatStats && profile.combatStats.expPerSec) || (typeof calculateRecentFarmExpPerSec === 'function' ? calculateRecentFarmExpPerSec() : 0);
+  const liveExpPerSec = profile.liveExpPerSec || (profile.combatStats && profile.combatStats.expPerSec) || (typeof calculateRecentFarmExpPerSec === 'function' ? calculateRecentFarmExpPerSec(20, charStats) : 0);
   const liveGoldPerSec = profile.liveGoldPerSec || (profile.combatStats && profile.combatStats.goldPerSec) || 0;
 
   // Stage & Farming Analysis
@@ -21907,7 +21909,11 @@ function getSmartAnalysisData() {
     if (farmStageId) farmStage = stages.find(s => (s.stage_id || s.stageId || s.id) === farmStageId) || null;
     const byGps = [...unlocked].sort((a,b) => (b.calc_gps || b.gold_per_sec || b.gps || 0) - (a.calc_gps || a.gold_per_sec || a.gps || 0));
     bestGoldStage = byGps[0] || null;
-    const getStageEps = (s) => (s.calc_eps || (s.total_exp && s.est_clear_sec ? (s.total_exp / s.est_clear_sec) : (s.total_exp || 0)));
+    const getStageEps = (s) => {
+      if (s.calc_eps) return s.calc_eps;
+      const sExp = typeof calculateEffectiveStageExp === 'function' ? calculateEffectiveStageExp(s, charStats).totalExp : (s.total_exp || 0);
+      return (sExp && s.est_clear_sec ? (sExp / s.est_clear_sec) : (sExp || 0));
+    };
     const byExp = [...unlocked].sort((a,b) => getStageEps(b) - getStageEps(a));
     bestExpStage = byExp[0] || null;
   }
@@ -22411,18 +22417,36 @@ function sendQuickPrompt() {}
 function generateAiResponse() { return ''; }
 
 
-function calculateRecentFarmExpPerSec(limit = 20) {
+function calculateRecentFarmExpPerSec(limit = 20, customStats) {
+  const stats = customStats || (typeof userProfile !== 'undefined' && userProfile && userProfile.stats) || (typeof lastProfileData !== 'undefined' && lastProfileData && lastProfileData.stats) || (typeof window !== 'undefined' && window.lastProfileData && window.lastProfileData.stats) || {};
   const history = getStageHistory();
   const validRuns = (history || []).filter(r => r && r.status === 'success' && !r.isPartial && r.duration >= 6.0);
   if (validRuns.length === 0) {
-    return (window.__currentEps && window.__currentEps > 0) ? window.__currentEps : 125;
+    if (window.__currentEps && window.__currentEps > 0) return window.__currentEps;
+    const farmStageId = (typeof userProfile !== 'undefined' && userProfile && userProfile.stageTid) || (typeof lastProfileData !== 'undefined' && lastProfileData && lastProfileData.stageTid) || null;
+    const stageList = (window.stageData || (typeof stageData !== 'undefined' ? stageData : []));
+    const s = farmStageId ? stageList.find(st => st.stage_id == farmStageId) : null;
+    if (s && typeof calculateEffectiveStageExp === 'function') {
+      const eff = calculateEffectiveStageExp(s, stats);
+      const estSec = s.est_clear_sec || 20;
+      return (eff.totalExp || s.total_exp || 2500) / estSec;
+    }
+    return 125;
   }
   const sample = validRuns.slice(0, limit);
   let totalExpRate = 0;
   for (const r of sample) {
     const s = (window.stageData && window.stageData.find(st => st.stage_id == r.stage_id)) || (typeof stageData !== 'undefined' && stageData.find(st => st.stage_id == r.stage_id));
-    const totalExp = (r.total_exp !== undefined && r.total_exp !== null) ? r.total_exp : (s ? (s.total_exp || 0) : 0);
-    totalExpRate += (totalExp / r.duration);
+    let stageTotalExp = 0;
+    if (s && typeof calculateEffectiveStageExp === 'function') {
+      const effExp = calculateEffectiveStageExp(s, stats);
+      stageTotalExp = (effExp && effExp.totalExp > 0) ? effExp.totalExp : (s.total_exp || 0);
+    } else if (r.total_exp !== undefined && r.total_exp !== null) {
+      stageTotalExp = r.total_exp;
+    } else if (s && s.total_exp) {
+      stageTotalExp = s.total_exp;
+    }
+    totalExpRate += (stageTotalExp / r.duration);
   }
   return totalExpRate / sample.length;
 }
@@ -22466,7 +22490,7 @@ function applyUserData(data) {
   const expRatePct = ((curExpInLevel / maxExpInLevel) * 100).toFixed(1);
 
   // Stage EPS and ETA calculation (average of 20 most recent successful cleared stages)
-  const curEps = calculateRecentFarmExpPerSec(20);
+  const curEps = calculateRecentFarmExpPerSec(20, data.stats);
   const etaSeconds = Math.max(0, Math.round(expRemaining / (curEps > 0 ? curEps : 125)));
   const etaFormatted = formatEtaTime(etaSeconds);
 
