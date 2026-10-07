@@ -16763,12 +16763,16 @@ function pollLiveGame() {
             if (typeof addJewelLog === 'function') {
               if (data.action === 'deposit') {
                 if (data.count > 0) {
+                  // Deposit succeeded — clear any failure cooldown
+                  globalThis.__depositFailCooldown = null;
                   const targetStrVi = data.targetStorage && data.targetStorage !== 'auto' ? ('Kho ' + data.targetStorage) : 'Kho đồ';
                   const targetStrEn = data.targetStorage && data.targetStorage !== 'auto' ? ('Storage ' + data.targetStorage) : 'Storage';
                   const msgVi = '📦 Đã cất ' + data.count + ' viên ngọc vào [' + targetStrVi + '] thành công!';
                   const msgEn = '📦 Successfully deposited ' + data.count + ' jewels into [' + targetStrEn + ']!';
                   addJewelLog(msgVi, 'success', msgEn);
                 } else if (data.reason) {
+                  // Deposit failed with explicit reason — set cooldown 30s to prevent spam
+                  globalThis.__depositFailCooldown = Date.now() + 30000;
                   addJewelLog('⚠️ ' + data.reason, 'warning');
                 } else {
                   const msgVi = 'ℹ️ Trong Balo hiện không có ngọc rời (hoặc ngọc đã khóa) để cất vào Kho.';
@@ -17779,13 +17783,96 @@ function sendEvaluatePoll() {
               }
             }
             if (toDeposit.length > 0) {
+              const slotPerTab = nn.db.config?.gen?.Storage_Slot_Cnt || 42;
               const totalStorage = calcTotalStorage(allItems);
-              const usedStorage = allItems.filter(i => i.location === 2).length; // 2 = Storage (Kho)
-              const avail = Math.max(0, totalStorage - usedStorage);
-              const chunk = toDeposit.slice(0, avail);
-              if (chunk.length > 0) {
-                await gs.reqStorageMoveInList(chunk);
-                jewelData.depositedCount = chunk.length;
+              const totalTabs = Math.round(totalStorage / slotPerTab);
+
+              // DEBUG: collect location distribution of all items
+              const locationDist = {};
+              for (let it of allItems) {
+                locationDist[it.location] = (locationDist[it.location] || 0) + 1;
+              }
+              jewelData.debugLocationDist = locationDist;
+              jewelData.debugSlotPerTab = slotPerTab;
+              jewelData.debugTotalTabs = totalTabs;
+              jewelData.debugTotalStorage = totalStorage;
+
+              // Find which tab (0-indexed) has free space - iterate tabs to avoid "full tab" errors
+              const storageItems = allItems.filter(i => i.location === 2);
+              const tabUsed = {};
+              for (let it of storageItems) {
+                const s = it.slotIdx !== undefined ? it.slotIdx : (it.slot !== undefined ? it.slot : -1);
+                if (s >= 0) {
+                  const t = Math.floor(s / slotPerTab);
+                  tabUsed[t] = (tabUsed[t] || 0) + 1;
+                }
+              }
+              jewelData.debugTabUsed = tabUsed;
+              jewelData.debugStorageItemCount = storageItems.length;
+
+              // Sample first 3 storage items to inspect structure
+              jewelData.debugStorageSample = storageItems.slice(0, 3).map(it => ({
+                itemId: it.itemId, location: it.location,
+                slotIdx: it.slotIdx, slot: it.slot, _slotIdx: it._slotIdx,
+                storageIdx: it.storageIdx, tabIdx: it.tabIdx, khoIdx: it.khoIdx
+              }));
+
+              // targetStorage from cmd: 'auto' or '1'/'2'/'3'...
+              const targetTabOverride = (cmd.targetStorage && cmd.targetStorage !== 'auto') ? (parseInt(cmd.targetStorage, 10) - 1) : null;
+
+              const occupied = new Set(allItems.filter(it => it.location === 2).map(it => it.slotIdx));
+              let depositedAny = false;
+              let remaining = [...toDeposit];
+
+              for (let tabIdx = 0; tabIdx < totalTabs && remaining.length > 0; tabIdx++) {
+                // If user specified a tab, only use that tab
+                if (targetTabOverride !== null && tabIdx !== targetTabOverride) continue;
+
+                const startSlot = tabIdx * slotPerTab;
+                const endSlot = startSlot + slotPerTab - 1;
+                const freeSlots = [];
+                for (let s = startSlot; s <= endSlot; s++) {
+                  if (!occupied.has(s)) freeSlots.push(s);
+                }
+                if (freeSlots.length === 0) continue;
+
+                const chunk = remaining.slice(0, freeSlots.length);
+                if (chunk.length === 0) continue;
+
+                let chunkMoved = 0;
+                try {
+                  const res = await gs.reqStorageMoveInList(chunk, tabIdx);
+                  if (res && (res.NetResult === 1000 || res.NetResult === 0)) {
+                    chunkMoved = chunk.length;
+                  }
+                } catch(e1) {}
+
+                if (chunkMoved === 0) {
+                  for (let i = 0; i < chunk.length; i++) {
+                    try {
+                      const res = await gs.reqStorageMoveIn(chunk[i], freeSlots[i]);
+                      if (res && (res.NetResult === 1000 || res.NetResult === 0)) {
+                        chunkMoved++;
+                      }
+                    } catch(e2) {}
+                  }
+                }
+
+                if (chunkMoved > 0) {
+                  jewelData.depositedCount = (jewelData.depositedCount || 0) + chunkMoved;
+                  remaining = remaining.slice(chunkMoved);
+                  depositedAny = true;
+                  for (let i = 0; i < chunkMoved; i++) {
+                    occupied.add(freeSlots[i]);
+                  }
+                }
+              }
+
+              if (!depositedAny && toDeposit.length > 0) {
+                // All vaults full or API error - set a cooldown to prevent spam
+                jewelData.depositedCount = 0;
+                jewelData.depositReason = 'Tất cả kho đồ đã đầy hoặc không thể cất! Vui lòng kiểm tra kho.';
+                globalThis.__depositFailCooldown = Date.now() + 30000; // 30s cooldown
               }
             }
           } else if (cmd.action === 'withdraw') {
@@ -17814,14 +17901,42 @@ function sendEvaluatePoll() {
               }
             }
             if (toDeposit.length > 0) {
+              const slotPerTab = nn.db.config?.gen?.Storage_Slot_Cnt || 42;
               const totalStorage = calcTotalStorage(allItems);
-              const usedStorage = allItems.filter(i => i.location === 2).length;
-              const avail = Math.max(0, totalStorage - usedStorage);
-              const chunk = toDeposit.slice(0, avail);
-              if (chunk.length > 0) {
-                await gs.reqStorageMoveInList(chunk);
-                jewelData.depositedCount = chunk.length;
+              const totalTabs = Math.round(totalStorage / slotPerTab);
+              const occupied2 = new Set(allItems.filter(i => i.location === 2).map(it => it.slotIdx));
+              let remaining2 = [...toDeposit];
+              let deposited2 = 0;
+              for (let tabIdx = 0; tabIdx < totalTabs && remaining2.length > 0; tabIdx++) {
+                const startSlot = tabIdx * slotPerTab;
+                const endSlot = startSlot + slotPerTab - 1;
+                const freeSlots = [];
+                for (let s = startSlot; s <= endSlot; s++) {
+                  if (!occupied2.has(s)) freeSlots.push(s);
+                }
+                if (freeSlots.length === 0) continue;
+                const chunk = remaining2.slice(0, freeSlots.length);
+                if (chunk.length === 0) continue;
+                let chunkMoved = 0;
+                try {
+                  const res = await gs.reqStorageMoveInList(chunk, tabIdx);
+                  if (res && (res.NetResult === 1000 || res.NetResult === 0)) chunkMoved = chunk.length;
+                } catch(e1) {}
+                if (chunkMoved === 0) {
+                  for (let i = 0; i < chunk.length; i++) {
+                    try {
+                      const res = await gs.reqStorageMoveIn(chunk[i], freeSlots[i]);
+                      if (res && (res.NetResult === 1000 || res.NetResult === 0)) chunkMoved++;
+                    } catch(e2) {}
+                  }
+                }
+                if (chunkMoved > 0) {
+                  deposited2 += chunkMoved;
+                  remaining2 = remaining2.slice(chunkMoved);
+                  for (let i = 0; i < chunkMoved; i++) occupied2.add(freeSlots[i]);
+                }
               }
+              jewelData.depositedCount = deposited2;
             }
           } else if (cmd.action === 'withdrawType') {
             const gs = nn.net.manager.gameSession;
@@ -19037,8 +19152,32 @@ function applyLiveGameData(data) {
       }
     }
 
+    // Log deposit failure with reason + debug info
+    if (data.jewelsData.depositReason) {
+      addJewelLog('⚠️ Cất ngọc thất bại: ' + data.jewelsData.depositReason, 'warning');
+      // Debug info
+      const dbg = data.jewelsData;
+      addJewelLog(
+        '🔍 Debug: slotPerTab=' + dbg.debugSlotPerTab +
+        ' | totalTabs=' + dbg.debugTotalTabs +
+        ' | totalStorage=' + dbg.debugTotalStorage +
+        ' | storageItemCount=' + dbg.debugStorageItemCount,
+        'info'
+      );
+      addJewelLog(
+        '🔍 tabUsed=' + JSON.stringify(dbg.debugTabUsed) +
+        ' | locationDist=' + JSON.stringify(dbg.debugLocationDist),
+        'info'
+      );
+      if (dbg.debugStorageSample && dbg.debugStorageSample.length > 0) {
+        addJewelLog('🔍 Mẫu item trong kho: ' + JSON.stringify(dbg.debugStorageSample), 'info');
+      }
+    }
+
     // 2. Check if any loose jewels in inventory need auto-deposit to storage
-    if (isAutoDepositJewelActive && invJewels.length > 0 && !window.__pendingJewelCmd) {
+    // Guard with cooldown: if last deposit returned 0 items, wait 30s before retrying to prevent spam
+    const depositCooldownOk = !globalThis.__depositFailCooldown || Date.now() > globalThis.__depositFailCooldown;
+    if (isAutoDepositJewelActive && invJewels.length > 0 && !window.__pendingJewelCmd && depositCooldownOk) {
       const availStorage = Math.max(0, (data.jewelsData.storageTotal || 42) - (data.jewelsData.storageUsed || 0));
       if (availStorage > 0) {
         queueJewelCmd({ action: 'deposit', targetStorage: autoDepositJewelTargetStorage });
